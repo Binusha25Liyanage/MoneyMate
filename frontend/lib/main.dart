@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:money_mate/screens/page_selection.dart';
 import 'package:money_mate/screens/signup_screen.dart';
 import 'package:money_mate/screens/transaction_screen.dart';
-import 'screens/landing_screen.dart';
+import 'screens/landing_screen/landing_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_transaction_screen.dart';
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => LandingScreen(),
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignUpScreen(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => PageSelection(),
         '/add': (context) => AddTransactionScreen(),
         '/transactions': (context) => TransactionsScreen(),
         '/budgets': (context) => BudgetsScreen(),
