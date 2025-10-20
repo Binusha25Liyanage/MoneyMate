@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:money_mate/utils/colors.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,28 +12,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController usernameController = TextEditingController(text: "John Doe");
   final TextEditingController emailController = TextEditingController(text: "john.doe@example.com");
   bool darkMode = true;
+  bool notifications = true;
   String selectedCurrency = 'USD';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              const Text(
-                '👤 Profile & Settings',
+              Text(
+                'Profile',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
+                  color: AppColors.textPrimary,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              Text(
+                'Manage your account and preferences',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 24),
               
               // Profile Info Card
               _buildProfileCard(),
@@ -44,6 +54,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               // Stats Card
               _buildStatsCard(),
+              const SizedBox(height: 20),
+              
+              // Logout Button
+              _buildLogoutButton(),
             ],
           ),
         ),
@@ -53,40 +67,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.deepPurple.shade700, Colors.deepPurple.shade400],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
           // Profile Picture
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
-            ),
-            child: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.person,
-                size: 40,
-                color: Colors.deepPurple,
+          Stack(
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.primaryGradient,
+                ),
+                child: const Icon(
+                  Icons.person,
+                  size: 50,
+                  color: Colors.white,
+                ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.card, width: 3),
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           
           // Profile Info
-          _buildProfileField('Username', usernameController, Icons.person),
-          const SizedBox(height: 12),
-          _buildProfileField('Email', emailController, Icons.email),
+          _buildProfileField('Username', usernameController, Icons.person_outline),
+          const SizedBox(height: 16),
+          _buildProfileField('Email', emailController, Icons.email_outlined),
         ],
       ),
     );
@@ -95,16 +123,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileField(String label, TextEditingController controller, IconData icon) {
     return TextField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white),
+        labelStyle: TextStyle(color: AppColors.textSecondary),
+        prefixIcon: Icon(icon, color: AppColors.textSecondary),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: AppColors.surfaceDark,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.textSecondary.withOpacity(0.2)),
         ),
       ),
     );
@@ -112,28 +144,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSettingsCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Settings',
+          Text(
+            'Preferences',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           
           // Dark Mode Toggle
           _buildSettingItem(
             'Dark Mode',
-            Icons.dark_mode,
+            Icons.dark_mode_outlined,
             Switch(
               value: darkMode,
               onChanged: (value) {
@@ -141,29 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   darkMode = value;
                 });
               },
-              activeColor: Colors.deepPurpleAccent,
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Currency Selection
-          _buildSettingItem(
-            'Currency',
-            Icons.currency_exchange,
-            DropdownButton<String>(
-              dropdownColor: Colors.deepPurple.shade700,
-              value: selectedCurrency,
-              items: ['USD', 'EUR', 'GBP', 'LKR']
-                  .map((c) => DropdownMenuItem(
-                        value: c,
-                        child: Text(c, style: const TextStyle(color: Colors.white)),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCurrency = value!;
-                });
-              },
+              activeColor: AppColors.primary,
             ),
           ),
           const SizedBox(height: 16),
@@ -171,11 +181,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Notifications
           _buildSettingItem(
             'Notifications',
-            Icons.notifications,
+            Icons.notifications_outlined,
             Switch(
-              value: true,
-              onChanged: (value) {},
-              activeColor: Colors.deepPurpleAccent,
+              value: notifications,
+              onChanged: (value) {
+                setState(() {
+                  notifications = value;
+                });
+              },
+              activeColor: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Currency Selection
+          _buildSettingItem(
+            'Currency',
+            Icons.currency_exchange_outlined,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButton<String>(
+                dropdownColor: AppColors.card,
+                value: selectedCurrency,
+                underline: const SizedBox(),
+                items: ['USD', 'EUR', 'GBP', 'LKR']
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c, style: TextStyle(color: AppColors.textPrimary)),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCurrency = value!;
+                  });
+                },
+              ),
             ),
           ),
         ],
@@ -189,9 +233,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Row(
           children: [
-            Icon(icon, color: Colors.white70),
-            const SizedBox(width: 12),
-            Text(title, style: const TextStyle(color: Colors.white)),
+            Icon(icon, color: AppColors.textSecondary),
+            const SizedBox(width: 16),
+            Text(title, style: TextStyle(color: AppColors.textPrimary)),
           ],
         ),
         control,
@@ -201,36 +245,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildStatsCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Financial Summary',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Total Transactions', '47', Icons.list_alt),
-              _buildStatItem('Categories', '8', Icons.category),
+              _buildStatItem('Total Transactions', '47', Icons.receipt_long_outlined),
+              _buildStatItem('Categories', '8', Icons.category_outlined),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('This Month', '\$1,750', Icons.calendar_today),
-              _buildStatItem('Savings Rate', '23%', Icons.trending_up),
+              _buildStatItem('This Month', '\$1,750', Icons.calendar_today_outlined),
+              _buildStatItem('Savings Rate', '23%', Icons.trending_up_outlined),
             ],
           ),
         ],
@@ -239,34 +283,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatItem(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.deepPurple.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.deepPurpleAccent, size: 24),
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppColors.accentRed.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.accentRed.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.logout, color: AppColors.accentRed, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            'Logout',
+            style: TextStyle(
+              color: AppColors.accentRed,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

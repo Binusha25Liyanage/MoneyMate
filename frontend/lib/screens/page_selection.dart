@@ -24,39 +24,60 @@ class _PageSelectionState extends State<PageSelection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: pages[_page],
-      bottomNavigationBar: StylishBottomBar(
-        backgroundColor: const Color(0xFF252525),
-        option: BubbleBarOptions(
-          barStyle: BubbleBarStyle.horizontal,
-          bubbleFillStyle: BubbleFillStyle.fill,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
         ),
-        currentIndex: _page,
-        onTap: (index) {
-          setState(() {
-            _page = index;
-          });
-        },
-        items: [
-          BottomBarItem(
-            icon: const Icon(Icons.home_outlined, color: Colors.grey),
-            selectedIcon: const Icon(Icons.home, color: Colors.white),
-            title: const Text('Home', style: TextStyle(color: Colors.white)),
-            backgroundColor: buttonColor,
+        child: StylishBottomBar(
+          backgroundColor: Colors.transparent,
+          option: BubbleBarOptions(
+            barStyle: BubbleBarStyle.horizontal,
+            bubbleFillStyle: BubbleFillStyle.fill,
+            opacity: 0.3,
           ),
-          BottomBarItem(
-            icon: const Icon(Icons.attach_money_outlined, color: Colors.grey),
-            selectedIcon: const Icon(Icons.attach_money, color: Colors.white),
-            title: const Text('Transactions', style: TextStyle(color: Colors.white)),
-            backgroundColor: buttonColor,
-          ),
-          BottomBarItem(
-            icon: const Icon(Icons.person_outline, color: Colors.grey),
-            selectedIcon: const Icon(Icons.person, color: Colors.white),
-            title: const Text('Profile', style: TextStyle(color: Colors.white)),
-            backgroundColor: buttonColor,
-          ),
-        ],
+          currentIndex: _page,
+          onTap: (index) {
+            setState(() {
+              _page = index;
+            });
+          },
+          items: [
+            BottomBarItem(
+              icon: const Icon(Icons.home_outlined, color: AppColors.textSecondary),
+              selectedIcon: const Icon(Icons.home, color: AppColors.primaryLight),
+              title: const Text('Home', style: TextStyle(color: AppColors.textPrimary)),
+              backgroundColor: AppColors.primary,
+              badge: const SizedBox.shrink(),
+            ),
+            BottomBarItem(
+              icon: const Icon(Icons.attach_money_outlined, color: AppColors.textSecondary),
+              selectedIcon: const Icon(Icons.attach_money, color: AppColors.primaryLight),
+              title: const Text('Transactions', style: TextStyle(color: AppColors.textPrimary)),
+              backgroundColor: AppColors.primary,
+              badge: const SizedBox.shrink(),
+            ),
+            BottomBarItem(
+              icon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
+              selectedIcon: const Icon(Icons.person, color: AppColors.primaryLight),
+              title: const Text('Profile', style: TextStyle(color: AppColors.textPrimary)),
+              backgroundColor: AppColors.primary,
+              badge: const SizedBox.shrink(),
+            ),
+          ],
+        ),
       ),
     );
   }
