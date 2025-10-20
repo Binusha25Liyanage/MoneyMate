@@ -61,7 +61,7 @@ class ReportsScreen extends StatelessWidget {
                     children: spendingData.map((data) {
                       return ListTile(
                         leading: CircleAvatar(backgroundColor: data.color),
-                        title: Text(data.title!, style: const TextStyle(color: Colors.white)),
+                        title: Text(data.title, style: const TextStyle(color: Colors.white)),
                         trailing: Text('${data.value.toStringAsFixed(1)}%', style: const TextStyle(color: Colors.white70)),
                       );
                     }).toList(),

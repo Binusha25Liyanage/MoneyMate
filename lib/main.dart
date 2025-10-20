@@ -4,25 +4,26 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_transaction_screen.dart';
-import 'screens/transactions_screen.dart';
+import 'package:e_grocery/screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
 import 'screens/savings_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/profile_screen.dart';
 
 void main() {
-  runApp(FinanceApp());
+  runApp(const MyApp());
 }
 
-class FinanceApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Personal Finance Tracker',
+      title: 'Finance Tracker',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
-        brightness: Brightness.dark,
+        useMaterial3: true,
       ),
       initialRoute: '/',
       routes: {
@@ -39,4 +40,10 @@ class FinanceApp extends StatelessWidget {
       },
     );
   }
+}
+
+SignUpScreen() {
+}
+
+TransactionsScreen() {
 }
