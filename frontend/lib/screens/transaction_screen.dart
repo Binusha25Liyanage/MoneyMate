@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:money_mate/utils/colors.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -9,46 +10,90 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
   final List<Map<String, dynamic>> transactions = [
-    {'type': 'Expense', 'category': 'Food', 'amount': 50, 'date': '2025-10-13', 'notes': 'Lunch at restaurant'},
-    {'type': 'Income', 'category': 'Salary', 'amount': 1500, 'date': '2025-10-12', 'notes': 'Monthly salary'},
-    {'type': 'Expense', 'category': 'Transport', 'amount': 20, 'date': '2025-10-12', 'notes': 'Bus fare'},
-    {'type': 'Expense', 'category': 'Entertainment', 'amount': 80, 'date': '2025-10-11', 'notes': 'Movie tickets'},
-    {'type': 'Income', 'category': 'Freelance', 'amount': 300, 'date': '2025-10-10', 'notes': 'Web design project'},
+    {'type': 'Expense', 'category': 'Food & Dining', 'amount': 85.50, 'date': '2025-10-13', 'notes': 'Lunch at restaurant', 'icon': Icons.restaurant},
+    {'type': 'Income', 'category': 'Salary', 'amount': 4500.00, 'date': '2025-10-12', 'notes': 'Monthly salary', 'icon': Icons.work},
+    {'type': 'Expense', 'category': 'Transportation', 'amount': 45.75, 'date': '2025-10-12', 'notes': 'Bus and metro fares', 'icon': Icons.directions_car},
+    {'type': 'Expense', 'category': 'Entertainment', 'amount': 120.00, 'date': '2025-10-11', 'notes': 'Movie tickets', 'icon': Icons.movie},
+    {'type': 'Income', 'category': 'Freelance', 'amount': 850.00, 'date': '2025-10-10', 'notes': 'Web design project', 'icon': Icons.computer},
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 60, 16, 20),
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.deepPurple.shade700, Colors.deepPurple.shade400],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: AppColors.primaryGradient,
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '💸 Transactions',
+                  'Transactions',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'Manage your income and expenses',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white.withOpacity(0.8),
                     fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Monthly Balance',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '+ \$3,245.75',
+                            style: TextStyle(
+                              color: AppColors.accentGreen,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryDark,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'October',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -57,125 +102,138 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           
           // Transactions List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                final tx = transactions[index];
-                bool isIncome = tx['type'] == 'Income';
-                
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isIncome ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                          shape: BoxShape.circle,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: ListView.builder(
+                itemCount: transactions.length,
+                itemBuilder: (context, index) {
+                  final tx = transactions[index];
+                  bool isIncome = tx['type'] == 'Income';
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isIncome 
+                                ? AppColors.accentGreen.withOpacity(0.2)
+                                : AppColors.accentRed.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            tx['icon'],
+                            color: isIncome ? AppColors.accentGreen : AppColors.accentRed,
+                            size: 20,
+                          ),
                         ),
-                        child: Icon(
-                          isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-                          color: isIncome ? Colors.green : Colors.red,
-                          size: 20,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tx['category'],
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                tx['notes'],
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                tx['date'],
+                                style: TextStyle(
+                                  color: AppColors.textGrey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              tx['category'],
-                              style: const TextStyle(
-                                color: Colors.white,
+                              '${isIncome ? '+' : '-'}\$${tx['amount']}',
+                              style: TextStyle(
+                                color: isIncome ? AppColors.accentGreen : AppColors.accentRed,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 18,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              tx['notes'],
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isIncome 
+                                    ? AppColors.accentGreen.withOpacity(0.2)
+                                    : AppColors.accentRed.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              tx['date'],
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 12,
+                              child: Text(
+                                tx['type'],
+                                style: TextStyle(
+                                  color: isIncome ? AppColors.accentGreen : AppColors.accentRed,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${isIncome ? '+' : '-'}\$${tx['amount']}',
-                            style: TextStyle(
-                              color: isIncome ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                        const SizedBox(width: 12),
+                        PopupMenuButton(
+                          icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: AppColors.accentBlue),
+                                  const SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            tx['type'],
-                            style: TextStyle(
-                              color: isIncome ? Colors.green : Colors.red,
-                              fontSize: 12,
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: AppColors.accentRed),
+                                  const SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      PopupMenuButton(
-                        icon: const Icon(Icons.more_vert, color: Colors.white70),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, color: Colors.blue),
-                                SizedBox(width: 8),
-                                Text('Edit'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Delete'),
-                              ],
-                            ),
-                          ),
-                        ],
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            // TODO: Edit transaction
-                          } else if (value == 'delete') {
-                            // TODO: Delete transaction
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
+                          ],
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              // TODO: Edit transaction
+                            } else if (value == 'delete') {
+                              // TODO: Delete transaction
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -184,7 +242,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         onPressed: () {
           _showAddTransactionDialog(context);
         },
-        backgroundColor: Colors.deepPurpleAccent,
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -226,44 +284,54 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.deepPurple.shade800, Colors.deepPurple.shade600],
+              colors: [AppColors.card, AppColors.surface],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '💸 Add Transaction',
+              Text(
+                'Add Transaction',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: type,
-                dropdownColor: Colors.deepPurple.shade700,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.1),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  labelText: 'Type',
-                  labelStyle: const TextStyle(color: Colors.white70),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                items: ['Income', 'Expense']
-                    .map((t) => DropdownMenuItem(
-                          value: t,
-                          child: Text(t, style: const TextStyle(color: Colors.white)),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => type = value!),
+                child: DropdownButtonFormField<String>(
+                  value: type,
+                  dropdownColor: AppColors.card,
+                  style: TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    labelText: 'Type',
+                    labelStyle: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  items: ['Income', 'Expense']
+                      .map((t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(t, style: TextStyle(color: AppColors.textPrimary)),
+                          ))
+                      .toList(),
+                  onChanged: (value) => setState(() => type = value!),
+                ),
               ),
               const SizedBox(height: 16),
               _textField(amountController, 'Amount', Icons.attach_money, true),
@@ -278,13 +346,13 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.1),
+                        backgroundColor: AppColors.surfaceDark,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+                      child: Text('Cancel', style: TextStyle(color: AppColors.textPrimary)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -295,20 +363,20 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                         widget.onTransactionAdded();
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Transaction Saved!'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppColors.accentGreen,
                           ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurpleAccent,
+                        backgroundColor: AppColors.primary,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      child: const Text('Save', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      child: Text('Save', style: TextStyle(color: Colors.white, fontSize: 16)),
                     ),
                   ),
                 ],
@@ -324,15 +392,15 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white),
+        hintStyle: TextStyle(color: AppColors.textSecondary),
+        prefixIcon: Icon(icon, color: AppColors.textSecondary),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: AppColors.surfaceDark,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
       ),
