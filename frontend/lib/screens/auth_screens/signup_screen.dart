@@ -219,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/login');
+                            Navigator.pushReplacementNamed(context, '/');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,

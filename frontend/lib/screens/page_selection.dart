@@ -42,7 +42,7 @@ class _PageSelectionState extends State<PageSelection> {
           ],
         ),
         child: StylishBottomBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.surface,
           option: BubbleBarOptions(
             barStyle: BubbleBarStyle.horizontal,
             bubbleFillStyle: BubbleFillStyle.fill,
