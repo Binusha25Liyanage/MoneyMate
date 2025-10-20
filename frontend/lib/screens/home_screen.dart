@@ -234,18 +234,25 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Spending Overview',
+                'Financial Overview',
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Text(
-                'This Month',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Last 7 Days',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -253,12 +260,8 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           SizedBox(
             height: 200,
-            child: PieChart(
-              PieChartData(
-                sections: _chartSections(),
-                centerSpaceRadius: 50,
-                sectionsSpace: 4,
-              ),
+            child: LineChart(
+              _mainData(),
             ),
           ),
           const SizedBox(height: 16),
@@ -268,87 +271,180 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  List<PieChartSectionData> _chartSections() {
-    return [
-      PieChartSectionData(
-        color: AppColors.accentBlue,
-        value: 35,
-        radius: 40,
-        title: '35%',
-        titleStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+  LineChartData _mainData() {
+    return LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        horizontalInterval: 500,
+        verticalInterval: 1,
+        getDrawingHorizontalLine: (value) {
+          return FlLine(
+            color: AppColors.textSecondary.withOpacity(0.2),
+            strokeWidth: 1,
+          );
+        },
+        getDrawingVerticalLine: (value) {
+          return FlLine(
+            color: AppColors.textSecondary.withOpacity(0.2),
+            strokeWidth: 1,
+          );
+        },
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: 1,
+            getTitlesWidget: (value, meta) {
+              const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+              return Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  days[value.toInt()],
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 10,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            interval: 500,
+            reservedSize: 40,
+            getTitlesWidget: (value, meta) {
+              return Text(
+                '\$${value.toInt()}',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                ),
+              );
+            },
+          ),
         ),
       ),
-      PieChartSectionData(
-        color: AppColors.accentGreen,
-        value: 25,
-        radius: 40,
-        title: '25%',
-        titleStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+      borderData: FlBorderData(
+        show: true,
+        border: Border.all(
+          color: AppColors.textSecondary.withOpacity(0.2),
         ),
       ),
-      PieChartSectionData(
-        color: AppColors.accentYellow,
-        value: 20,
-        radius: 40,
-        title: '20%',
-        titleStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+      minX: 0,
+      maxX: 6,
+      minY: 0,
+      maxY: 2000,
+      lineBarsData: [
+        // Income Line
+        LineChartBarData(
+          spots: const [
+            FlSpot(0, 1200),
+            FlSpot(1, 800),
+            FlSpot(2, 1500),
+            FlSpot(3, 600),
+            FlSpot(4, 1800),
+            FlSpot(5, 900),
+            FlSpot(6, 1600),
+          ],
+          isCurved: true,
+          gradient: LinearGradient(
+            colors: [
+              AppColors.accentGreen,
+              AppColors.accentGreen.withOpacity(0.6),
+            ],
+          ),
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.accentGreen.withOpacity(0.3),
+                AppColors.accentGreen.withOpacity(0.1),
+              ],
+            ),
+          ),
         ),
-      ),
-      PieChartSectionData(
-        color: AppColors.accentRed,
-        value: 20,
-        radius: 40,
-        title: '20%',
-        titleStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+        // Expenses Line
+        LineChartBarData(
+          spots: const [
+            FlSpot(0, 400),
+            FlSpot(1, 600),
+            FlSpot(2, 300),
+            FlSpot(3, 800),
+            FlSpot(4, 500),
+            FlSpot(5, 700),
+            FlSpot(6, 400),
+          ],
+          isCurved: true,
+          gradient: LinearGradient(
+            colors: [
+              AppColors.accentRed,
+              AppColors.accentRed.withOpacity(0.6),
+            ],
+          ),
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.accentRed.withOpacity(0.3),
+                AppColors.accentRed.withOpacity(0.1),
+              ],
+            ),
+          ),
         ),
-      ),
-    ];
+      ],
+    );
   }
 
   Widget _buildChartLegend() {
-    final categories = [
-      {'name': 'Shopping', 'color': AppColors.accentBlue},
-      {'name': 'Food', 'color': AppColors.accentGreen},
-      {'name': 'Entertainment', 'color': AppColors.accentYellow},
-      {'name': 'Bills', 'color': AppColors.accentRed},
-    ];
-
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: categories.map((category) {
-        return Row(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: category['color'] as Color,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              category['name'] as String,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        );
-      }).toList(),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildLegendItem('Income', AppColors.accentGreen),
+        const SizedBox(width: 20),
+        _buildLegendItem('Expenses', AppColors.accentRed),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(String text, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -374,12 +470,20 @@ class HomeScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            Text(
-              'View All',
-              style: TextStyle(
-                color: AppColors.primaryLight,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
+              child: Text(
+                'View All',
+                style: TextStyle(
+                  color: AppColors.primaryLight,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:money_mate/screens/page_selection.dart';
 import 'package:money_mate/screens/auth_screens/signup_screen.dart';
 import 'package:money_mate/screens/transaction_screen.dart';
-import 'screens/landing_screen/landing_screen.dart';
 import 'screens/auth_screens/login_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 
 void main() {
