@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/landing_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_transaction_screen.dart';
-import 'package:e_grocery/screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
 import 'screens/savings_screen.dart';
 import 'screens/reports_screen.dart';
