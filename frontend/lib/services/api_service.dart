@@ -9,7 +9,12 @@ import '../models/api_response.dart';
 class ApiService {
   static const String baseUrl = 'http://192.168.8.155:3000/api';
 
-  Future<http.Response> _request(String method, String endpoint, {dynamic body, String? token}) async {
+  Future<http.Response> _request(
+    String method,
+    String endpoint, {
+    dynamic body,
+    String? token,
+  }) async {
     final url = Uri.parse('$baseUrl$endpoint');
     final headers = {
       'Content-Type': 'application/json',
@@ -38,14 +43,18 @@ class ApiService {
   // Auth methods
   Future<ApiResponse<UserModel>> login(String email, String password) async {
     try {
-      final response = await _request('POST', '/auth/login', body: {
-        'email': email,
-        'password': password,
-      });
+      final response = await _request(
+        'POST',
+        '/auth/login',
+        body: {'email': email, 'password': password},
+      );
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        final apiResponse = ApiResponse<UserModel>.fromJson(jsonResponse, (data) => UserModel.fromJson(data['user']));
+        final apiResponse = ApiResponse<UserModel>.fromJson(
+          jsonResponse,
+          (data) => UserModel.fromJson((data as Map<String, dynamic>)['user']),
+        );
         if (apiResponse.success) {
           // Save token
           final prefs = await SharedPreferences.getInstance();
@@ -54,27 +63,42 @@ class ApiService {
         }
         return apiResponse;
       } else {
-        return ApiResponse(success: false, message: 'Login failed: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Login failed: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Login failed: $e');
     }
   }
 
-  Future<ApiResponse<dynamic>> register(String name, String email, String password, String dateOfBirth) async {
+  Future<ApiResponse<dynamic>> register(
+    String name,
+    String email,
+    String password,
+    String dateOfBirth,
+  ) async {
     try {
-      final response = await _request('POST', '/auth/register', body: {
-        'name': name,
-        'email': email,
-        'password': password,
-        'date_of_birth': dateOfBirth,
-      });
+      final response = await _request(
+        'POST',
+        '/auth/register',
+        body: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'date_of_birth': dateOfBirth,
+        },
+      );
 
       if (response.statusCode == 201) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Registration failed: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Registration failed: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Registration failed: $e');
@@ -94,51 +118,85 @@ class ApiService {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<List<TransactionModel>>.fromJson(
           jsonResponse,
-          (data) => (data as List).map((item) => TransactionModel.fromJson(item)).toList(),
+          (data) => (data as List)
+              .map((item) => TransactionModel.fromJson(item))
+              .toList(),
         );
       } else {
-        return ApiResponse(success: false, message: 'Failed to fetch transactions: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch transactions: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      return ApiResponse(success: false, message: 'Failed to fetch transactions: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch transactions: $e',
+      );
     }
   }
 
-  Future<ApiResponse<dynamic>> createTransaction(TransactionModel transaction) async {
+  Future<ApiResponse<dynamic>> createTransaction(
+    TransactionModel transaction,
+  ) async {
     try {
       final token = await _getToken();
       if (token == null) {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('POST', '/transactions', body: transaction.toJson(), token: token);
+      final response = await _request(
+        'POST',
+        '/transactions',
+        body: transaction.toJson(),
+        token: token,
+      );
       if (response.statusCode == 201) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to create transaction: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to create transaction: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      return ApiResponse(success: false, message: 'Failed to create transaction: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to create transaction: $e',
+      );
     }
   }
 
-  Future<ApiResponse<dynamic>> updateTransaction(TransactionModel transaction) async {
+  Future<ApiResponse<dynamic>> updateTransaction(
+    TransactionModel transaction,
+  ) async {
     try {
       final token = await _getToken();
       if (token == null) {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('PUT', '/transactions/${transaction.serverId}', body: transaction.toJson(), token: token);
+      final response = await _request(
+        'PUT',
+        '/transactions/${transaction.serverId}',
+        body: transaction.toJson(),
+        token: token,
+      );
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to update transaction: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to update transaction: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      return ApiResponse(success: false, message: 'Failed to update transaction: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to update transaction: $e',
+      );
     }
   }
 
@@ -149,15 +207,25 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('DELETE', '/transactions/$transactionId', token: token);
+      final response = await _request(
+        'DELETE',
+        '/transactions/$transactionId',
+        token: token,
+      );
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to delete transaction: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to delete transaction: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      return ApiResponse(success: false, message: 'Failed to delete transaction: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to delete transaction: $e',
+      );
     }
   }
 
@@ -174,10 +242,14 @@ class ApiService {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<List<GoalModel>>.fromJson(
           jsonResponse,
-          (data) => (data as List).map((item) => GoalModel.fromJson(item)).toList(),
+          (data) =>
+              (data as List).map((item) => GoalModel.fromJson(item)).toList(),
         );
       } else {
-        return ApiResponse(success: false, message: 'Failed to fetch goals: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch goals: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Failed to fetch goals: $e');
@@ -191,12 +263,20 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('POST', '/goals', body: goal.toJson(), token: token);
+      final response = await _request(
+        'POST',
+        '/goals',
+        body: goal.toJson(),
+        token: token,
+      );
       if (response.statusCode == 201) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to create goal: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to create goal: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Failed to create goal: $e');
@@ -210,12 +290,20 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('PUT', '/goals/${goal.serverId}', body: goal.toJson(), token: token);
+      final response = await _request(
+        'PUT',
+        '/goals/${goal.serverId}',
+        body: goal.toJson(),
+        token: token,
+      );
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to update goal: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to update goal: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Failed to update goal: $e');
@@ -234,7 +322,10 @@ class ApiService {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to delete goal: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to delete goal: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Failed to delete goal: $e');
@@ -249,12 +340,19 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('GET', '/report?month=$month&year=$year', token: token);
+      final response = await _request(
+        'GET',
+        '/report?month=$month&year=$year',
+        token: token,
+      );
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to fetch report: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch report: ${response.statusCode}',
+        );
       }
     } catch (e) {
       return ApiResponse(success: false, message: 'Failed to fetch report: $e');
@@ -268,15 +366,25 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
-      final response = await _request('GET', '/report/yearly?year=$year', token: token);
+      final response = await _request(
+        'GET',
+        '/report/yearly?year=$year',
+        token: token,
+      );
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
       } else {
-        return ApiResponse(success: false, message: 'Failed to fetch yearly report: ${response.statusCode}');
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch yearly report: ${response.statusCode}',
+        );
       }
     } catch (e) {
-      return ApiResponse(success: false, message: 'Failed to fetch yearly report: $e');
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch yearly report: $e',
+      );
     }
   }
 }
