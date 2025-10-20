@@ -1,6 +1,6 @@
+import 'package:money_mate/models/transaction_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/transaction.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -34,13 +34,13 @@ class DatabaseHelper {
 
   Future<int> addTransaction(TransactionModel transaction) async {
     final db = await instance.database;
-    return await db.insert('transactions', transaction.toMap());
+    return await db.insert('transactions', transaction.toLocalMap());
   }
 
   Future<List<TransactionModel>> getTransactions() async {
     final db = await instance.database;
     final result = await db.query('transactions', orderBy: 'id DESC');
-    return result.map((e) => TransactionModel.fromMap(e)).toList();
+    return result.map((e) => TransactionModel.fromLocalMap(e)).toList();
   }
 
   Future<int> deleteTransaction(int id) async {

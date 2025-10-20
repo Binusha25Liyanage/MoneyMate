@@ -1,36 +1,80 @@
 import 'package:flutter/material.dart';
-import 'package:money_mate/screens/page_selection.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:money_mate/screens/auth_screens/login_screen.dart';
 import 'package:money_mate/screens/auth_screens/signup_screen.dart';
-import 'package:money_mate/screens/transaction_screen.dart';
-import 'screens/landing_screen/landing_screen.dart';
-import 'screens/auth_screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'blocs/auth/auth_bloc.dart';
+import 'blocs/transaction/transaction_bloc.dart';
+import 'blocs/goal/goal_bloc.dart';
+import 'services/api_service.dart';
+import 'services/database_service.dart';
+import 'screens/page_selection.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final ApiService apiService = ApiService();
+  final DatabaseService databaseService = DatabaseService();
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Finance Tracker',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        useMaterial3: true,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(apiService: apiService),
+        ),
+        BlocProvider<TransactionBloc>(
+          create: (context) => TransactionBloc(
+            apiService: apiService,
+            databaseService: databaseService,
+          ),
+        ),
+        BlocProvider<GoalBloc>(
+          create: (context) => GoalBloc(
+            apiService: apiService,
+            databaseService: databaseService,
+          ),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Money Mate',
+        theme: ThemeData(
+          primarySwatch: Colors.deepPurple,
+          useMaterial3: true,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => FutureBuilder<bool>(
+            future: _checkIfLoggedIn(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Scaffold(
+                  backgroundColor: Color(0xFF0F0F23),
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              return snapshot.data == true ? PageSelection() : LoginScreen();
+            },
+          ),
+          '/login': (context) => LoginScreen(),
+          '/signup': (context) => SignUpScreen(),
+          '/home': (context) => PageSelection(),
+        },
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => LoginScreen(),
-        '/signup': (context) => SignUpScreen(),
-        '/home': (context) => PageSelection(),
-        '/transactions': (context) => TransactionsScreen(),
-        '/profile': (context) => ProfileScreen(),
-      },
     );
+  }
+
+  Future<bool> _checkIfLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    return token != null;
   }
 }
