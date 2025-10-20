@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:money_mate/screens/signup_screen.dart';
+import 'package:money_mate/screens/transaction_screen.dart';
 import 'screens/landing_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -18,6 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Finance Tracker',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
@@ -38,10 +41,4 @@ class MyApp extends StatelessWidget {
       },
     );
   }
-}
-
-SignUpScreen() {
-}
-
-TransactionsScreen() {
 }
