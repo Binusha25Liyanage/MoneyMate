@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 // Login Form Container
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
                   decoration: BoxDecoration(
                     color: AppColors.card,
                     borderRadius: BorderRadius.circular(24),
@@ -281,14 +281,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildSocialButton(IconData icon, String label) {
-    return Expanded(
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
-        ),
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
