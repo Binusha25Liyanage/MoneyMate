@@ -42,36 +42,43 @@ class ApiService {
 
   // Auth methods
   Future<ApiResponse<UserModel>> login(String email, String password) async {
-    try {
-      final response = await _request(
-        'POST',
-        '/auth/login',
-        body: {'email': email, 'password': password},
-      );
+  try {
+    final response = await _request(
+      'POST',
+      '/auth/login',
+      body: {'email': email, 'password': password},
+    );
 
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        final apiResponse = ApiResponse<UserModel>.fromJson(
-          jsonResponse,
-          (data) => UserModel.fromJson((data as Map<String, dynamic>)['user']),
-        );
-        if (apiResponse.success) {
-          // Save token
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', jsonResponse['data']['token']);
-          await prefs.setInt('userId', apiResponse.data!.id);
-        }
-        return apiResponse;
-      } else {
-        return ApiResponse(
-          success: false,
-          message: 'Login failed: ${response.statusCode}',
-        );
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      final apiResponse = ApiResponse<UserModel>.fromJson(
+        jsonResponse,
+        (data) => UserModel.fromJson((data as Map<String, dynamic>)['user']),
+      );
+      
+      if (apiResponse.success) {
+        // Save token and complete user data
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', jsonResponse['data']['token']);
+        await prefs.setInt('userId', apiResponse.data!.id);
+        
+        // Save the complete user object as JSON string
+        final userJson = json.encode(apiResponse.data!.toJson());
+        await prefs.setString('user', userJson);
+        
+        print('User data saved: ${apiResponse.data!.name} (${apiResponse.data!.email})');
       }
-    } catch (e) {
-      return ApiResponse(success: false, message: 'Login failed: $e');
+      return apiResponse;
+    } else {
+      return ApiResponse(
+        success: false,
+        message: 'Login failed: ${response.statusCode}',
+      );
     }
+  } catch (e) {
+    return ApiResponse(success: false, message: 'Login failed: $e');
   }
+}
 
   Future<ApiResponse<dynamic>> register(
     String name,

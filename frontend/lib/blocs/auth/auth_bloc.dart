@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
 
@@ -14,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginEvent>(_onLogin);
     on<RegisterEvent>(_onRegister);
     on<LogoutEvent>(_onLogout);
+    on<LoadUserEvent>(_onLoadUser);
   }
 
   void _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
@@ -49,5 +51,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     emit(AuthUnauthenticated());
+  }
+
+  void _onLoadUser(LoadUserEvent event, Emitter<AuthState> emit) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      
+      if (userJson != null) {
+        final userMap = json.decode(userJson);
+        final user = UserModel.fromJson(userMap);
+        emit(AuthAuthenticated(user: user));
+      } else {
+        emit(AuthUnauthenticated());
+      }
+    } catch (e) {
+      emit(AuthUnauthenticated());
+    }
   }
 }

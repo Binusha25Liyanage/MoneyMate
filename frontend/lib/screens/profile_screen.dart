@@ -52,6 +52,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildUserInfoCard(),
               const SizedBox(height: 20),
               
+              // Account Details Card
+              _buildAccountDetailsCard(),
+              const SizedBox(height: 20),
+              
               // Report Generation Card
               _buildReportCard(),
               const SizedBox(height: 20),
@@ -68,13 +72,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildUserInfoCard() {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        String userName = 'User';
-        String userEmail = 'user@example.com';
-        
-        if (state is AuthAuthenticated) {
-          userName = state.user.name;
-          userEmail = state.user.email;
+        if (state is! AuthAuthenticated) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Center(
+              child: Text(
+                'User not found',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          );
         }
+
+        final user = state.user;
         
         return Container(
           padding: const EdgeInsets.all(24),
@@ -102,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               // User Info
               Text(
-                userName,
+                user.name,
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 24,
@@ -111,16 +128,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                userEmail,
+                user.email,
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.accentGreen.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Active User',
+                  style: TextStyle(
+                    color: AppColors.accentGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAccountDetailsCard() {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is! AuthAuthenticated) {
+          return SizedBox.shrink();
+        }
+
+        final user = state.user;
+        
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Account Details',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              _buildDetailItem('User ID', user.id.toString(), Icons.fingerprint),
+              const SizedBox(height: 16),
+              
+              _buildDetailItem('Email Address', user.email, Icons.email),
+              const SizedBox(height: 16),
+              
+              _buildDetailItem('Date of Birth', user.formattedDateOfBirth, Icons.cake),
+              const SizedBox(height: 16),
+              
+              _buildDetailItem('Member Since', user.memberSince, Icons.calendar_today),
+              const SizedBox(height: 16),
+              
+              _buildDetailItem('Account Status', user.isActive ? 'Active' : 'Inactive', 
+                  user.isActive ? Icons.check_circle : Icons.error,
+                  color: user.isActive ? AppColors.accentGreen : AppColors.accentRed),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailItem(String title, String value, IconData icon, {Color? color}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: color ?? AppColors.textSecondary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

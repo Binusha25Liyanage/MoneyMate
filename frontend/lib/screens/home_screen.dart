@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:money_mate/blocs/auth/auth_bloc.dart';
 import 'package:money_mate/blocs/goal/goal_bloc.dart';
 import 'package:money_mate/blocs/transaction/transaction_bloc.dart';
 import 'package:money_mate/models/goal_model.dart';
 import 'package:money_mate/models/transaction_model.dart';
 import 'package:money_mate/utils/colors.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,6 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildBalanceCard(),
               const SizedBox(height: 24),
               
+              // Financial Chart
+              _buildFinancialChart(),
+              const SizedBox(height: 24),
+              
               // Goals Section
               _buildGoalsSection(),
               const SizedBox(height: 24),
@@ -67,26 +73,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Welcome back,',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Money Mate 👋',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        String userName = 'Money Mate';
+        
+        if (state is AuthAuthenticated) {
+          userName = state.user.name;
+        }
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Welcome back,',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$userName 👋',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -207,6 +223,234 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildFinancialChart() {
+    return BlocBuilder<TransactionBloc, TransactionState>(
+      builder: (context, state) {
+        List<TransactionModel> transactions = [];
+        
+        if (state is TransactionLoaded) {
+          transactions = state.transactions;
+        }
+
+        // Get last 7 days data
+        final now = DateTime.now();
+        final List<DateTime> last7Days = List.generate(7, (i) => 
+          DateTime(now.year, now.month, now.day).subtract(Duration(days: 6 - i))
+        );
+
+        // Prepare chart data
+        List<FlSpot> incomeSpots = [];
+        List<FlSpot> expenseSpots = [];
+        List<FlSpot> netSpots = [];
+
+        for (int i = 0; i < last7Days.length; i++) {
+          final day = last7Days[i];
+          double dayIncome = 0;
+          double dayExpense = 0;
+
+          for (var tx in transactions) {
+            if (tx.date.year == day.year && 
+                tx.date.month == day.month && 
+                tx.date.day == day.day) {
+              if (tx.type == 'income') {
+                dayIncome += tx.amount;
+              } else {
+                dayExpense += tx.amount;
+              }
+            }
+          }
+
+          double dayNet = dayIncome - dayExpense;
+
+          incomeSpots.add(FlSpot(i.toDouble(), dayIncome));
+          expenseSpots.add(FlSpot(i.toDouble(), dayExpense));
+          netSpots.add(FlSpot(i.toDouble(), dayNet));
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '7-Day Financial Overview',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 200,
+                child: LineChart(
+                  LineChartData(
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: true,
+                      horizontalInterval: _getMaxAmount([incomeSpots, expenseSpots, netSpots]) / 4,
+                      getDrawingHorizontalLine: (value) {
+                        return FlLine(
+                          color: AppColors.surfaceDark,
+                          strokeWidth: 1,
+                        );
+                      },
+                      getDrawingVerticalLine: (value) {
+                        return FlLine(
+                          color: AppColors.surfaceDark,
+                          strokeWidth: 1,
+                        );
+                      },
+                    ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 30,
+                          interval: 1,
+                          getTitlesWidget: (value, meta) {
+                            final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                value.toInt() < days.length ? days[value.toInt()] : '',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 40,
+                          interval: _getMaxAmount([incomeSpots, expenseSpots, netSpots]) / 4,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              '\$${value.toInt()}',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 10,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(
+                      show: true,
+                      border: Border.all(
+                        color: AppColors.surfaceDark,
+                        width: 1,
+                      ),
+                    ),
+                    minX: 0,
+                    maxX: 6,
+                    minY: 0,
+                    maxY: _getMaxAmount([incomeSpots, expenseSpots, netSpots]) * 1.1,
+                    lineBarsData: [
+                      // Income Line
+                      LineChartBarData(
+                        spots: incomeSpots,
+                        isCurved: true,
+                        color: AppColors.accentGreen,
+                        barWidth: 3,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: AppColors.accentGreen.withOpacity(0.1),
+                        ),
+                      ),
+                      // Expense Line
+                      LineChartBarData(
+                        spots: expenseSpots,
+                        isCurved: true,
+                        color: AppColors.accentRed,
+                        barWidth: 3,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: AppColors.accentRed.withOpacity(0.1),
+                        ),
+                      ),
+                      // Net Balance Line
+                      LineChartBarData(
+                        spots: netSpots,
+                        isCurved: true,
+                        color: AppColors.primary,
+                        barWidth: 3,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: true),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildChartLegend('Income', AppColors.accentGreen),
+                  _buildChartLegend('Expenses', AppColors.accentRed),
+                  _buildChartLegend('Net', AppColors.primary),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildChartLegend(String text, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  double _getMaxAmount(List<List<FlSpot>> spotsList) {
+    double max = 0;
+    for (var spots in spotsList) {
+      for (var spot in spots) {
+        if (spot.y > max) max = spot.y;
+      }
+    }
+    return max == 0 ? 100 : max; // Return at least 100 for empty state
   }
 
   Widget _buildGoalsSection() {

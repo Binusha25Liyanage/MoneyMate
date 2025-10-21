@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:money_mate/screens/auth_screens/login_screen.dart';
 import 'package:money_mate/screens/auth_screens/signup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'blocs/auth/auth_bloc.dart';
 import 'blocs/transaction/transaction_bloc.dart';
 import 'blocs/goal/goal_bloc.dart';
 import 'services/api_service.dart';
 import 'services/database_service.dart';
 import 'screens/page_selection.dart';
+import 'models/user_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(apiService: apiService),
+          create: (context) => AuthBloc(apiService: apiService)..add(LoadUserEvent()),
         ),
         BlocProvider<TransactionBloc>(
           create: (context) => TransactionBloc(
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {
   Future<bool> _checkIfLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    return token != null;
+    final userJson = prefs.getString('user');
+    return token != null && userJson != null;
   }
 }
