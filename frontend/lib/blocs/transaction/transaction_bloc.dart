@@ -17,6 +17,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     on<UpdateTransaction>(_onUpdateTransaction);
     on<DeleteTransaction>(_onDeleteTransaction);
     on<SyncTransactions>(_onSyncTransactions);
+    on<ClearTransactions>(_onClearTransactions);
   }
 
   void _onLoadTransactions(LoadTransactions event, Emitter<TransactionState> emit) async {
@@ -85,7 +86,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   void _onSyncTransactions(SyncTransactions event, Emitter<TransactionState> emit) async {
     try {
-      // Get unsynced transactions
+      // Get unsynced goals
       final unsyncedTransactions = await databaseService.getUnsyncedTransactions();
       
       for (var transaction in unsyncedTransactions) {
@@ -112,6 +113,15 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
       final transactions = await databaseService.getTransactions();
       emit(TransactionLoaded(transactions: transactions));
+    } catch (e) {
+      emit(TransactionError(message: e.toString()));
+    }
+  }
+
+  void _onClearTransactions(ClearTransactions event, Emitter<TransactionState> emit) async {
+    try {
+      await databaseService.clearAllTransactions();
+      emit(TransactionLoaded(transactions: []));
     } catch (e) {
       emit(TransactionError(message: e.toString()));
     }

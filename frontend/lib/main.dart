@@ -28,7 +28,10 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(apiService: apiService)..add(LoadUserEvent()),
+          create: (context) => AuthBloc(
+            apiService: apiService,
+            databaseService: databaseService,
+          )..add(LoadUserEvent()),
         ),
         BlocProvider<TransactionBloc>(
           create: (context) => TransactionBloc(

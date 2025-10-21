@@ -17,6 +17,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     on<UpdateGoal>(_onUpdateGoal);
     on<DeleteGoal>(_onDeleteGoal);
     on<SyncGoals>(_onSyncGoals);
+    on<ClearGoals>(_onClearGoals);
   }
 
   void _onLoadGoals(LoadGoals event, Emitter<GoalState> emit) async {
@@ -112,6 +113,15 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
 
       final goals = await databaseService.getGoals();
       emit(GoalLoaded(goals: goals));
+    } catch (e) {
+      emit(GoalError(message: e.toString()));
+    }
+  }
+
+  void _onClearGoals(ClearGoals event, Emitter<GoalState> emit) async {
+    try {
+      await databaseService.clearAllGoals();
+      emit(GoalLoaded(goals: []));
     } catch (e) {
       emit(GoalError(message: e.toString()));
     }

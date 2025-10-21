@@ -1,6 +1,7 @@
 class GoalModel {
   final int? id;
   final int? serverId;
+  final int? userId;
   final double targetAmount;
   final int targetMonth;
   final int targetYear;
@@ -10,6 +11,7 @@ class GoalModel {
   GoalModel({
     this.id,
     this.serverId,
+    this.userId,
     required this.targetAmount,
     required this.targetMonth,
     required this.targetYear,
@@ -41,6 +43,7 @@ class GoalModel {
     return {
       'id': id,
       'serverId': serverId,
+      'userId': userId,
       'target_amount': targetAmount,
       'target_month': targetMonth,
       'target_year': targetYear,
@@ -53,6 +56,7 @@ class GoalModel {
     return GoalModel(
       id: map['id'],
       serverId: map['serverId'],
+      userId: map['userId'],
       targetAmount: map['target_amount'],
       targetMonth: map['target_month'],
       targetYear: map['target_year'],
@@ -64,6 +68,7 @@ class GoalModel {
   GoalModel copyWith({
     int? id,
     int? serverId,
+    int? userId,
     double? targetAmount,
     int? targetMonth,
     int? targetYear,
@@ -73,6 +78,7 @@ class GoalModel {
     return GoalModel(
       id: id ?? this.id,
       serverId: serverId ?? this.serverId,
+      userId: userId ?? this.userId,
       targetAmount: targetAmount ?? this.targetAmount,
       targetMonth: targetMonth ?? this.targetMonth,
       targetYear: targetYear ?? this.targetYear,

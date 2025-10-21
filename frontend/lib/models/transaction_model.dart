@@ -1,6 +1,7 @@
 class TransactionModel {
   final int? id;
   final int? serverId;
+  final int? userId;
   final double amount;
   final String description;
   final String type; // 'income' or 'expense'
@@ -12,6 +13,7 @@ class TransactionModel {
   TransactionModel({
     this.id,
     this.serverId,
+    this.userId,
     required this.amount,
     required this.description,
     required this.type,
@@ -49,6 +51,7 @@ class TransactionModel {
     return {
       'id': id,
       'serverId': serverId,
+      'userId': userId,
       'amount': amount,
       'description': description,
       'type': type,
@@ -63,6 +66,7 @@ class TransactionModel {
     return TransactionModel(
       id: map['id'],
       serverId: map['serverId'],
+      userId: map['userId'],
       amount: map['amount'],
       description: map['description'],
       type: map['type'],
@@ -76,6 +80,7 @@ class TransactionModel {
   TransactionModel copyWith({
     int? id,
     int? serverId,
+    int? userId,
     double? amount,
     String? description,
     String? type,
@@ -87,6 +92,7 @@ class TransactionModel {
     return TransactionModel(
       id: id ?? this.id,
       serverId: serverId ?? this.serverId,
+      userId: userId ?? this.userId,
       amount: amount ?? this.amount,
       description: description ?? this.description,
       type: type ?? this.type,

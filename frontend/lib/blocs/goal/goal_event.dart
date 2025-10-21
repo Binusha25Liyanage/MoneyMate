@@ -38,3 +38,5 @@ class DeleteGoal extends GoalEvent {
 }
 
 class SyncGoals extends GoalEvent {}
+
+class ClearGoals extends GoalEvent {}
