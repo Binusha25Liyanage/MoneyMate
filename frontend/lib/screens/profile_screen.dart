@@ -16,14 +16,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController usernameController = TextEditingController(text: "John Doe");
-  final TextEditingController emailController = TextEditingController(text: "john.doe@example.com");
-  bool darkMode = true;
-  bool notifications = true;
-  String selectedCurrency = 'USD';
-  bool _generatingReport = false;
-
   final ApiService _apiService = ApiService();
+  bool _generatingReport = false;
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +48,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 24),
               
-              // Profile Info Card
-              _buildProfileCard(),
-              const SizedBox(height: 20),
-              
-              // Settings Card
-              _buildSettingsCard(),
+              // User Info Card
+              _buildUserInfoCard(),
               const SizedBox(height: 20),
               
               // Report Generation Card
@@ -75,18 +65,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          // Profile Picture
-          Stack(
+  Widget _buildUserInfoCard() {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        String userName = 'User';
+        String userEmail = 'user@example.com';
+        
+        if (state is AuthAuthenticated) {
+          userName = state.user.name;
+          userEmail = state.user.email;
+        }
+        
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
             children: [
+              // Profile Picture
               Container(
                 width: 100,
                 height: 100,
@@ -100,140 +98,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white,
                 ),
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.card, width: 3),
-                  ),
-                  child: const Icon(
-                    Icons.edit,
-                    size: 14,
-                    color: Colors.white,
-                  ),
+              const SizedBox(height: 20),
+              
+              // User Info
+              Text(
+                userName,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                userEmail,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          
-          // Profile Info
-          _buildProfileField('Username', usernameController, Icons.person_outline),
-          const SizedBox(height: 16),
-          _buildProfileField('Email', emailController, Icons.email_outlined),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileField(String label, TextEditingController controller, IconData icon) {
-    return TextField(
-      controller: controller,
-      style: TextStyle(color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: AppColors.textSecondary),
-        prefixIcon: Icon(icon, color: AppColors.textSecondary),
-        filled: true,
-        fillColor: AppColors.surfaceDark,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.textSecondary.withOpacity(0.1)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Preferences',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 20),
-          
-          // Dark Mode Toggle
-          _buildSettingItem(
-            'Dark Mode',
-            Icons.dark_mode_outlined,
-            Switch(
-              value: darkMode,
-              onChanged: (value) {
-                setState(() {
-                  darkMode = value;
-                });
-              },
-              activeColor: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Notifications
-          _buildSettingItem(
-            'Notifications',
-            Icons.notifications_outlined,
-            Switch(
-              value: notifications,
-              onChanged: (value) {
-                setState(() {
-                  notifications = value;
-                });
-              },
-              activeColor: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Currency Selection
-          _buildSettingItem(
-            'Currency',
-            Icons.currency_exchange_outlined,
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: DropdownButton<String>(
-                dropdownColor: AppColors.card,
-                value: selectedCurrency,
-                underline: const SizedBox(),
-                items: ['USD', 'EUR', 'GBP', 'LKR']
-                    .map((c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c, style: TextStyle(color: AppColors.textPrimary)),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCurrency = value!;
-                  });
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -338,22 +225,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingItem(String title, IconData icon, Widget control) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: AppColors.textSecondary),
-            const SizedBox(width: 16),
-            Text(title, style: TextStyle(color: AppColors.textPrimary)),
-          ],
-        ),
-        control,
-      ],
-    );
-  }
-
   Widget _buildLogoutButton() {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
@@ -402,27 +273,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       if (response.success) {
         await _generatePdfReport(response.data, 'Monthly_Report_${now.month}_${now.year}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Monthly report generated successfully!'),
-            backgroundColor: AppColors.accentGreen,
-          ),
-        );
+        _showSuccessSnackBar('Monthly report generated successfully!');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to generate report: ${response.message}'),
-            backgroundColor: AppColors.accentRed,
-          ),
-        );
+        _showErrorSnackBar('Failed to generate report: ${response.message}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error generating report: $e'),
-          backgroundColor: AppColors.accentRed,
-        ),
-      );
+      _showErrorSnackBar('Error generating report: $e');
     } finally {
       setState(() {
         _generatingReport = false;
@@ -441,27 +297,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       if (response.success) {
         await _generatePdfReport(response.data, 'Yearly_Report_${now.year}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Yearly report generated successfully!'),
-            backgroundColor: AppColors.accentGreen,
-          ),
-        );
+        _showSuccessSnackBar('Yearly report generated successfully!');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to generate report: ${response.message}'),
-            backgroundColor: AppColors.accentRed,
-          ),
-        );
+        _showErrorSnackBar('Failed to generate report: ${response.message}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error generating report: $e'),
-          backgroundColor: AppColors.accentRed,
-        ),
-      );
+      _showErrorSnackBar('Error generating report: $e');
     } finally {
       setState(() {
         _generatingReport = false;
@@ -469,93 +310,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _generatePdfReport(Map<String, dynamic> reportData, String fileName) async {
-    // Create a new PDF document
-    final PdfDocument document = PdfDocument();
-
-    // Add a new page
-    final PdfPage page = document.pages.add();
-
-    // Get page size
-    final Size pageSize = page.getClientSize();
-
-    // Draw title
-    page.graphics.drawString(
-      'Financial Report',
-      PdfStandardFont(PdfFontFamily.helvetica, 24),
-      bounds: Rect.fromLTWH(0, 0, pageSize.width, 50),
-      format: PdfStringFormat(alignment: PdfTextAlignment.center),
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.accentGreen,
+      ),
     );
+  }
 
-    // Draw report data
-    double yPosition = 60;
-    final PdfFont contentFont = PdfStandardFont(PdfFontFamily.helvetica, 12);
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.accentRed,
+      ),
+    );
+  }
 
-    // Add period information
-    if (reportData['period'] != null) {
-      final period = reportData['period'];
+  Future<void> _generatePdfReport(Map<String, dynamic> reportData, String fileName) async {
+    try {
+      // Create a new PDF document
+      final PdfDocument document = PdfDocument();
+
+      // Add a new page
+      final PdfPage page = document.pages.add();
+
+      // Get page size
+      final Size pageSize = page.getClientSize();
+
+      // Draw title
       page.graphics.drawString(
-        'Period: ${period['monthName'] ?? ''} ${period['year'] ?? ''}',
-        contentFont,
-        bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+        'Financial Report',
+        PdfStandardFont(PdfFontFamily.helvetica, 24),
+        bounds: Rect.fromLTWH(0, 0, pageSize.width, 50),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
-      yPosition += 25;
-    }
 
-    // Add summary information
-    if (reportData['summary'] != null) {
-      final summary = reportData['summary'];
-      page.graphics.drawString(
-        'Summary:',
-        PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold),
-        bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
-      );
-      yPosition += 25;
+      // Draw report data
+      double yPosition = 60;
+      final PdfFont contentFont = PdfStandardFont(PdfFontFamily.helvetica, 12);
 
-      final summaryItems = [
-        'Total Income: \$${summary['income']?.toStringAsFixed(2) ?? '0.00'}',
-        'Total Expenses: \$${summary['expenses']?.toStringAsFixed(2) ?? '0.00'}',
-        'Net Income: \$${summary['net']?.toStringAsFixed(2) ?? '0.00'}',
-      ];
-
-      for (final item in summaryItems) {
+      // Add period information
+      if (reportData['period'] != null) {
+        final period = reportData['period'];
         page.graphics.drawString(
-          item,
+          'Period: ${period['monthName'] ?? ''} ${period['year'] ?? ''}',
           contentFont,
-          bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 20),
+          bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
         );
-        yPosition += 20;
+        yPosition += 25;
       }
-      yPosition += 10;
-    }
 
-    // Save the document
-    final List<int> bytes = await document.save();
+      // Add summary information
+      if (reportData['summary'] != null) {
+        final summary = reportData['summary'];
+        page.graphics.drawString(
+          'Summary:',
+          PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold),
+          bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+        );
+        yPosition += 25;
 
-    // Dispose the document
-    document.dispose();
+        final summaryItems = [
+          'Total Income: \$${summary['income']?.toStringAsFixed(2) ?? '0.00'}',
+          'Total Expenses: \$${summary['expenses']?.toStringAsFixed(2) ?? '0.00'}',
+          'Net Income: \$${summary['net']?.toStringAsFixed(2) ?? '0.00'}',
+        ];
 
-    // Get external storage directory
-    final status = await Permission.storage.request();
-    if (status.isGranted) {
-      final directory = await getExternalStorageDirectory();
-      final file = File('${directory?.path}/$fileName.pdf');
-      await file.writeAsBytes(bytes);
-      
-      // Show success message with file path
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Report saved to: ${file.path}'),
-          backgroundColor: AppColors.accentGreen,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Storage permission denied'),
-          backgroundColor: AppColors.accentRed,
-        ),
-      );
+        for (final item in summaryItems) {
+          page.graphics.drawString(
+            item,
+            contentFont,
+            bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 20),
+          );
+          yPosition += 20;
+        }
+        yPosition += 10;
+      }
+
+      // Save the document
+      final List<int> bytes = await document.save();
+
+      // Dispose the document
+      document.dispose();
+
+      // Get external storage directory
+      final status = await Permission.storage.request();
+      if (status.isGranted) {
+        final directory = await getExternalStorageDirectory();
+        final file = File('${directory?.path}/$fileName.pdf');
+        await file.writeAsBytes(bytes);
+        
+        // Show success message with file path
+        _showSuccessSnackBar('Report saved to: ${file.path}');
+      } else {
+        _showErrorSnackBar('Storage permission denied');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error creating PDF: $e');
     }
   }
 }
