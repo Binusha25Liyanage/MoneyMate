@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:money_mate/blocs/sync/sync_bloc.dart';
 import 'package:money_mate/screens/auth_screens/login_screen.dart';
 import 'package:money_mate/screens/auth_screens/signup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,6 +44,12 @@ class MyApp extends StatelessWidget {
           create: (context) => GoalBloc(
             apiService: apiService,
             databaseService: databaseService,
+          ),
+        ),
+        BlocProvider<SyncBloc>(
+          create: (context) => SyncBloc(
+            apiService: ApiService(),
+            databaseService: DatabaseService(),
           ),
         ),
       ],

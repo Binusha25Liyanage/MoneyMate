@@ -264,9 +264,17 @@ class DatabaseService {
   }
 
   Future<void> clearAllTransactions() async {
-    final db = await database;
-    await db.delete('transactions');
+  final db = await database;
+  final userId = await getCurrentUserId();
+  
+  if (userId != null) {
+    await db.delete(
+      'transactions',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
   }
+}
 
   // Goal methods
   Future<int> insertGoal(GoalModel goal) async {
@@ -369,9 +377,17 @@ class DatabaseService {
   }
 
   Future<void> clearAllGoals() async {
-    final db = await database;
-    await db.delete('goals');
+  final db = await database;
+  final userId = await getCurrentUserId();
+  
+  if (userId != null) {
+    await db.delete(
+      'goals',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
   }
+}
 
   // Clear all user data (for logout)
   Future<void> clearAllUserData() async {

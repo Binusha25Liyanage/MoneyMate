@@ -20,14 +20,61 @@ class GoalModel {
   });
 
   factory GoalModel.fromJson(Map<String, dynamic> json) {
-    return GoalModel(
-      serverId: json['id'],
-      targetAmount: json['target_amount'] is int ? (json['target_amount'] as int).toDouble() : json['target_amount'],
-      targetMonth: json['target_month'],
-      targetYear: json['target_year'],
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
-      isSynced: true,
-    );
+    try {
+      // Handle targetAmount which might be int or double
+      double parseAmount(dynamic amountValue) {
+        if (amountValue == null) return 0.0;
+        if (amountValue is int) return amountValue.toDouble();
+        if (amountValue is double) return amountValue;
+        if (amountValue is String) return double.tryParse(amountValue) ?? 0.0;
+        return 0.0;
+      }
+
+      // Handle targetMonth and targetYear
+      int parseMonth(dynamic monthValue) {
+        if (monthValue == null) return DateTime.now().month;
+        if (monthValue is int) return monthValue;
+        if (monthValue is String) return int.tryParse(monthValue) ?? DateTime.now().month;
+        return DateTime.now().month;
+      }
+
+      int parseYear(dynamic yearValue) {
+        if (yearValue == null) return DateTime.now().year;
+        if (yearValue is int) return yearValue;
+        if (yearValue is String) return int.tryParse(yearValue) ?? DateTime.now().year;
+        return DateTime.now().year;
+      }
+
+      // Handle createdAt
+      DateTime? createdAt;
+      if (json['created_at'] != null) {
+        try {
+          createdAt = DateTime.parse(json['created_at'].toString());
+        } catch (e) {
+          print('Error parsing created_at: ${json['created_at']}');
+          createdAt = null;
+        }
+      }
+
+      return GoalModel(
+        serverId: json['id'] is int ? json['id'] : null,
+        targetAmount: parseAmount(json['target_amount']),
+        targetMonth: parseMonth(json['target_month']),
+        targetYear: parseYear(json['target_year']),
+        createdAt: createdAt,
+        isSynced: true,
+      );
+    } catch (e) {
+      print('Error creating GoalModel from JSON: $e');
+      print('JSON data: $json');
+      // Return a default goal model to prevent complete failure
+      return GoalModel(
+        targetAmount: 0.0,
+        targetMonth: DateTime.now().month,
+        targetYear: DateTime.now().year,
+        isSynced: true,
+      );
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -57,7 +104,7 @@ class GoalModel {
       id: map['id'],
       serverId: map['serverId'],
       userId: map['userId'],
-      targetAmount: map['target_amount'],
+      targetAmount: map['target_amount'] is int ? (map['target_amount'] as int).toDouble() : map['target_amount'],
       targetMonth: map['target_month'],
       targetYear: map['target_year'],
       createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,

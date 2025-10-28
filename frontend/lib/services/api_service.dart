@@ -7,7 +7,7 @@ import '../models/goal_model.dart';
 import '../models/api_response.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.8.155:3000/api';
+  static const String baseUrl = 'http://192.168.1.10:3000/api';
 
   Future<http.Response> _request(
     String method,
@@ -20,6 +20,11 @@ class ApiService {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
+
+    print('API $method Request: $url');
+    if (token != null) {
+      print('With auth token');
+    }
 
     switch (method) {
       case 'GET':
@@ -42,43 +47,48 @@ class ApiService {
 
   // Auth methods
   Future<ApiResponse<UserModel>> login(String email, String password) async {
-  try {
-    final response = await _request(
-      'POST',
-      '/auth/login',
-      body: {'email': email, 'password': password},
-    );
+    try {
+      final response = await _request(
+        'POST',
+        '/auth/login',
+        body: {'email': email, 'password': password},
+      );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      final apiResponse = ApiResponse<UserModel>.fromJson(
-        jsonResponse,
-        (data) => UserModel.fromJson((data as Map<String, dynamic>)['user']),
-      );
-      
-      if (apiResponse.success) {
-        // Save token and complete user data
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', jsonResponse['data']['token']);
-        await prefs.setInt('userId', apiResponse.data!.id);
-        
-        // Save the complete user object as JSON string
-        final userJson = json.encode(apiResponse.data!.toJson());
-        await prefs.setString('user', userJson);
-        
-        print('User data saved: ${apiResponse.data!.name} (${apiResponse.data!.email})');
+      print('Login response status: ${response.statusCode}');
+      print('Login response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final apiResponse = ApiResponse<UserModel>.fromJson(
+          jsonResponse,
+          (data) => UserModel.fromJson((data as Map<String, dynamic>)['user']),
+        );
+
+        if (apiResponse.success) {
+          // Save token and complete user data
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', jsonResponse['data']['token']);
+          await prefs.setInt('userId', apiResponse.data!.id);
+
+          // Save the complete user object as JSON string
+          final userJson = json.encode(apiResponse.data!.toJson());
+          await prefs.setString('user', userJson);
+
+          print(
+            'User data saved: ${apiResponse.data!.name} (${apiResponse.data!.email})',
+          );
+        }
+        return apiResponse;
+      } else {
+        return ApiResponse(
+          success: false,
+          message: 'Login failed: ${response.statusCode}',
+        );
       }
-      return apiResponse;
-    } else {
-      return ApiResponse(
-        success: false,
-        message: 'Login failed: ${response.statusCode}',
-      );
+    } catch (e) {
+      return ApiResponse(success: false, message: 'Login failed: $e');
     }
-  } catch (e) {
-    return ApiResponse(success: false, message: 'Login failed: $e');
   }
-}
 
   Future<ApiResponse<dynamic>> register(
     String name,
@@ -98,6 +108,8 @@ class ApiService {
         },
       );
 
+      print('Register response status: ${response.statusCode}');
+
       if (response.statusCode == 201) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -112,7 +124,7 @@ class ApiService {
     }
   }
 
-  // Transaction methods
+  // Transaction methods - UPDATED to match backend routes
   Future<ApiResponse<List<TransactionModel>>> getTransactions() async {
     try {
       final token = await _getToken();
@@ -120,15 +132,39 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
+      print('Getting transactions with token...');
       final response = await _request('GET', '/transactions', token: token);
+
+      print('Transactions response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<List<TransactionModel>>.fromJson(
-          jsonResponse,
-          (data) => (data as List)
-              .map((item) => TransactionModel.fromJson(item))
-              .toList(),
-        );
+
+        // Handle the parsing manually to catch individual item errors
+        if (jsonResponse['success'] == true && jsonResponse['data'] is List) {
+          List<TransactionModel> transactions = [];
+          for (var item in jsonResponse['data']) {
+            try {
+              final transaction = TransactionModel.fromJson(item);
+              transactions.add(transaction);
+            } catch (e) {
+              print('Error parsing transaction item: $e');
+              print('Problematic item: $item');
+              // Continue with other items
+            }
+          }
+
+          return ApiResponse<List<TransactionModel>>(
+            success: true,
+            message: jsonResponse['message'] ?? 'Success',
+            data: transactions,
+          );
+        } else {
+          return ApiResponse(
+            success: false,
+            message: jsonResponse['message'] ?? 'Invalid response format',
+          );
+        }
       } else {
         return ApiResponse(
           success: false,
@@ -136,6 +172,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Get transactions error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch transactions: $e',
@@ -158,6 +195,7 @@ class ApiService {
         body: transaction.toJson(),
         token: token,
       );
+
       if (response.statusCode == 201) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -190,6 +228,7 @@ class ApiService {
         body: transaction.toJson(),
         token: token,
       );
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -219,6 +258,7 @@ class ApiService {
         '/transactions/$transactionId',
         token: token,
       );
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -236,7 +276,7 @@ class ApiService {
     }
   }
 
-  // Goal methods
+  // Goal methods - UPDATED to match backend routes
   Future<ApiResponse<List<GoalModel>>> getGoals() async {
     try {
       final token = await _getToken();
@@ -244,14 +284,39 @@ class ApiService {
         return ApiResponse(success: false, message: 'Not authenticated');
       }
 
+      print('Getting goals with token...');
       final response = await _request('GET', '/goals', token: token);
+
+      print('Goals response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<List<GoalModel>>.fromJson(
-          jsonResponse,
-          (data) =>
-              (data as List).map((item) => GoalModel.fromJson(item)).toList(),
-        );
+
+        // Handle the parsing manually to catch individual item errors
+        if (jsonResponse['success'] == true && jsonResponse['data'] is List) {
+          List<GoalModel> goals = [];
+          for (var item in jsonResponse['data']) {
+            try {
+              final goal = GoalModel.fromJson(item);
+              goals.add(goal);
+            } catch (e) {
+              print('Error parsing goal item: $e');
+              print('Problematic item: $item');
+              // Continue with other items
+            }
+          }
+
+          return ApiResponse<List<GoalModel>>(
+            success: true,
+            message: jsonResponse['message'] ?? 'Success',
+            data: goals,
+          );
+        } else {
+          return ApiResponse(
+            success: false,
+            message: jsonResponse['message'] ?? 'Invalid response format',
+          );
+        }
       } else {
         return ApiResponse(
           success: false,
@@ -259,6 +324,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Get goals error: $e');
       return ApiResponse(success: false, message: 'Failed to fetch goals: $e');
     }
   }
@@ -276,6 +342,7 @@ class ApiService {
         body: goal.toJson(),
         token: token,
       );
+
       if (response.statusCode == 201) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -303,6 +370,7 @@ class ApiService {
         body: goal.toJson(),
         token: token,
       );
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -325,6 +393,7 @@ class ApiService {
       }
 
       final response = await _request('DELETE', '/goals/$goalId', token: token);
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -352,6 +421,7 @@ class ApiService {
         '/report?month=$month&year=$year',
         token: token,
       );
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
@@ -378,6 +448,7 @@ class ApiService {
         '/report/yearly?year=$year',
         token: token,
       );
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
