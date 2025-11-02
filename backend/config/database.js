@@ -69,7 +69,7 @@ const initDatabase = async () => {
 // Function to create stored procedures
 const createProcedures = async (connection) => {
   try {
-    // Procedure 1: Monthly Expenditure Analysis
+    // Procedure 1: Monthly Expenditure Analysis - FIXED
     await connection.execute(`
       CREATE OR REPLACE PROCEDURE get_monthly_expenditure_analysis(
         p_user_id IN NUMBER,
@@ -100,12 +100,12 @@ const createProcedures = async (connection) => {
       END;
     `);
 
-    // Procedure 2: Goal Adherence Tracking
+    // Procedure 2: Goal Adherence Tracking - FIXED
     await connection.execute(`
       CREATE OR REPLACE PROCEDURE get_goal_adherence_tracking(
         p_user_id IN NUMBER,
-        p_start_date IN DATE,
-        p_end_date IN DATE,
+        p_start_date IN VARCHAR2,
+        p_end_date IN VARCHAR2,
         p_result OUT SYS_REFCURSOR
       ) AS
       BEGIN
@@ -116,13 +116,13 @@ const createProcedures = async (connection) => {
             g.target_month,
             g.target_year,
             g.target_amount,
-            SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END) AS actual_net_income
+            NVL(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END), 0) AS actual_net_income
           FROM goals g
           LEFT JOIN transactions t ON g.user_id = t.user_id
             AND EXTRACT(MONTH FROM t.transaction_date) = g.target_month
             AND EXTRACT(YEAR FROM t.transaction_date) = g.target_year
           WHERE g.user_id = p_user_id
-            AND TO_DATE(g.target_month || '-' || g.target_year, 'MM-YYYY') BETWEEN p_start_date AND p_end_date
+            AND TO_DATE(g.target_month || '-' || g.target_year, 'MM-YYYY') BETWEEN TO_DATE(p_start_date, 'YYYY-MM-DD') AND TO_DATE(p_end_date, 'YYYY-MM-DD')
           GROUP BY g.id, g.target_month, g.target_year, g.target_amount
         )
         SELECT
@@ -130,12 +130,12 @@ const createProcedures = async (connection) => {
           target_month,
           target_year,
           target_amount,
-          NVL(actual_net_income, 0) AS actual_amount,
-          NVL(actual_net_income, 0) - target_amount AS difference,
-          ROUND((NVL(actual_net_income, 0) / target_amount) * 100, 2) AS achievement_percentage,
+          actual_net_income AS actual_amount,
+          actual_net_income - target_amount AS difference,
+          ROUND((actual_net_income / target_amount) * 100, 2) AS achievement_percentage,
           CASE
-            WHEN NVL(actual_net_income, 0) >= target_amount THEN 'Achieved'
-            WHEN NVL(actual_net_income, 0) >= (target_amount * 0.8) THEN 'Near Target'
+            WHEN actual_net_income >= target_amount THEN 'Achieved'
+            WHEN actual_net_income >= (target_amount * 0.8) THEN 'Near Target'
             ELSE 'Below Target'
           END AS status
         FROM monthly_data
@@ -143,7 +143,7 @@ const createProcedures = async (connection) => {
       END;
     `);
 
-    // Procedure 3: Savings Goal Progress
+    // Procedure 3: Savings Goal Progress - FIXED
     await connection.execute(`
       CREATE OR REPLACE PROCEDURE get_savings_goal_progress(
         p_user_id IN NUMBER,
@@ -157,9 +157,7 @@ const createProcedures = async (connection) => {
             g.target_month,
             g.target_year,
             g.target_amount,
-            SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END) AS current_amount,
-            ROUND((SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END) / g.target_amount) * 100, 2) AS progress_percentage,
-            g.target_amount - SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END) AS remaining_amount
+            NVL(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END), 0) AS current_amount
           FROM goals g
           LEFT JOIN transactions t ON g.user_id = t.user_id
             AND EXTRACT(MONTH FROM t.transaction_date) = g.target_month
@@ -172,18 +170,18 @@ const createProcedures = async (connection) => {
           target_month,
           target_year,
           target_amount,
-          NVL(current_amount, 0) AS current_amount,
-          NVL(progress_percentage, 0) AS progress_percentage,
-          NVL(remaining_amount, target_amount) AS remaining_amount,
+          current_amount,
+          ROUND((current_amount / target_amount) * 100, 2) AS progress_percentage,
+          target_amount - current_amount AS remaining_amount,
           CASE
             WHEN current_amount >= target_amount THEN 'Achieved'
             WHEN TO_DATE(target_month || '-' || target_year, 'MM-YYYY') < TRUNC(SYSDATE) AND current_amount < target_amount THEN 'Overdue'
-            WHEN progress_percentage >= 90 THEN 'Near Goal'
+            WHEN (current_amount / target_amount) >= 0.9 THEN 'Near Goal'
             ELSE 'In Progress'
           END AS status,
           CASE
             WHEN TO_DATE(target_month || '-' || target_year, 'MM-YYYY') > SYSDATE THEN
-              ROUND((target_amount - NVL(current_amount, 0)) / GREATEST(1, (TO_DATE(target_month || '-' || target_year, 'MM-YYYY') - SYSDATE)), 2)
+              ROUND((target_amount - current_amount) / GREATEST(1, (TO_DATE(target_month || '-' || target_year, 'MM-YYYY') - SYSDATE)), 2)
             ELSE 0
           END AS required_daily_saving
         FROM goal_progress
@@ -191,12 +189,12 @@ const createProcedures = async (connection) => {
       END;
     `);
 
-    // Procedure 4: Category Expense Distribution
+    // Procedure 4: Category Expense Distribution - FIXED
     await connection.execute(`
       CREATE OR REPLACE PROCEDURE get_category_expense_distribution(
         p_user_id IN NUMBER,
-        p_start_date IN DATE,
-        p_end_date IN DATE,
+        p_start_date IN VARCHAR2,
+        p_end_date IN VARCHAR2,
         p_result OUT SYS_REFCURSOR
       ) AS
         v_total_expenses NUMBER := 0;
@@ -205,7 +203,7 @@ const createProcedures = async (connection) => {
         FROM transactions
         WHERE user_id = p_user_id
           AND type = 'expense'
-          AND transaction_date BETWEEN p_start_date AND p_end_date;
+          AND transaction_date BETWEEN TO_DATE(p_start_date, 'YYYY-MM-DD') AND TO_DATE(p_end_date, 'YYYY-MM-DD');
 
         OPEN p_result FOR
         SELECT
@@ -221,14 +219,14 @@ const createProcedures = async (connection) => {
         FROM transactions
         WHERE user_id = p_user_id
           AND type = 'expense'
-          AND transaction_date BETWEEN p_start_date AND p_end_date
+          AND transaction_date BETWEEN TO_DATE(p_start_date, 'YYYY-MM-DD') AND TO_DATE(p_end_date, 'YYYY-MM-DD')
         GROUP BY category
         HAVING SUM(amount) > 0
         ORDER BY SUM(amount) DESC;
       END;
     `);
 
-    // Procedure 5: Financial Health Status
+    // Procedure 5: Financial Health Status - FIXED
     await connection.execute(`
       CREATE OR REPLACE PROCEDURE get_financial_health_status(
         p_user_id IN NUMBER,
@@ -238,7 +236,9 @@ const createProcedures = async (connection) => {
         v_total_expenses NUMBER := 0;
         v_net_income NUMBER := 0;
         v_savings_rate NUMBER := 0;
+        v_achieved_goals NUMBER := 0;
       BEGIN
+        -- Calculate total income and expenses
         SELECT
           NVL(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0),
           NVL(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0)
@@ -248,6 +248,18 @@ const createProcedures = async (connection) => {
 
         v_net_income := v_total_income - v_total_expenses;
         v_savings_rate := CASE WHEN v_total_income > 0 THEN (v_net_income / v_total_income) * 100 ELSE 0 END;
+
+        -- Calculate achieved goals
+        SELECT COUNT(*) INTO v_achieved_goals
+        FROM goals g
+        WHERE g.user_id = p_user_id 
+          AND g.target_amount <= (
+            SELECT NVL(SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END), 0)
+            FROM transactions 
+            WHERE user_id = p_user_id
+              AND EXTRACT(MONTH FROM transaction_date) = g.target_month
+              AND EXTRACT(YEAR FROM transaction_date) = g.target_year
+          );
 
         OPEN p_result FOR
         SELECT
@@ -263,12 +275,7 @@ const createProcedures = async (connection) => {
           END AS financial_health,
           (SELECT COUNT(*) FROM transactions WHERE user_id = p_user_id) AS total_transactions,
           (SELECT COUNT(*) FROM goals WHERE user_id = p_user_id) AS total_goals,
-          (SELECT COUNT(*) FROM goals WHERE user_id = p_user_id 
-           AND target_amount <= (SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END)
-                               FROM transactions 
-                               WHERE user_id = p_user_id
-                               AND EXTRACT(MONTH FROM transaction_date) = target_month
-                               AND EXTRACT(YEAR FROM transaction_date) = target_year)) AS achieved_goals
+          v_achieved_goals AS achieved_goals
         FROM DUAL;
       END;
     `);

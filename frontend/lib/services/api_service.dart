@@ -124,7 +124,7 @@ class ApiService {
     }
   }
 
-  // Transaction methods - UPDATED to match backend routes
+  // Transaction methods
   Future<ApiResponse<List<TransactionModel>>> getTransactions() async {
     try {
       final token = await _getToken();
@@ -276,7 +276,7 @@ class ApiService {
     }
   }
 
-  // Goal methods - UPDATED to match backend routes
+  // Goal methods
   Future<ApiResponse<List<GoalModel>>> getGoals() async {
     try {
       final token = await _getToken();
@@ -408,7 +408,7 @@ class ApiService {
     }
   }
 
-  // Report methods
+  // Report methods - FIXED with proper error handling
   Future<ApiResponse<dynamic>> getMonthlyReport(int month, int year) async {
     try {
       final token = await _getToken();
@@ -422,9 +422,12 @@ class ApiService {
         token: token,
       );
 
+      print('Monthly report response status: ${response.statusCode}');
+      print('Monthly report response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -432,6 +435,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Monthly report error: $e');
       return ApiResponse(success: false, message: 'Failed to fetch report: $e');
     }
   }
@@ -449,9 +453,12 @@ class ApiService {
         token: token,
       );
 
+      print('Yearly report response status: ${response.statusCode}');
+      print('Yearly report response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -459,6 +466,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Yearly report error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch yearly report: $e',
@@ -466,7 +474,7 @@ class ApiService {
     }
   }
 
-  // New Advanced Report Methods
+  // New Advanced Report Methods - FIXED with proper error handling
   Future<ApiResponse<dynamic>> getMonthlyExpenditureAnalysis(int year) async {
     try {
       final token = await _getToken();
@@ -480,9 +488,12 @@ class ApiService {
         token: token,
       );
 
+      print('Monthly expenditure analysis response status: ${response.statusCode}');
+      print('Monthly expenditure analysis response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -490,6 +501,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Monthly expenditure analysis error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch monthly expenditure analysis: $e',
@@ -513,9 +525,12 @@ class ApiService {
         token: token,
       );
 
+      print('Goal adherence tracking response status: ${response.statusCode}');
+      print('Goal adherence tracking response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -523,6 +538,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Goal adherence tracking error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch goal adherence tracking: $e',
@@ -543,9 +559,12 @@ class ApiService {
         token: token,
       );
 
+      print('Savings goal progress response status: ${response.statusCode}');
+      print('Savings goal progress response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -553,6 +572,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Savings goal progress error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch savings goal progress: $e',
@@ -576,9 +596,12 @@ class ApiService {
         token: token,
       );
 
+      print('Category expense distribution response status: ${response.statusCode}');
+      print('Category expense distribution response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -586,6 +609,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Category expense distribution error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch category expense distribution: $e',
@@ -606,9 +630,12 @@ class ApiService {
         token: token,
       );
 
+      print('Financial health status response status: ${response.statusCode}');
+      print('Financial health status response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data ?? {});
       } else {
         return ApiResponse(
           success: false,
@@ -616,6 +643,7 @@ class ApiService {
         );
       }
     } catch (e) {
+      print('Financial health status error: $e');
       return ApiResponse(
         success: false,
         message: 'Failed to fetch financial health status: $e',

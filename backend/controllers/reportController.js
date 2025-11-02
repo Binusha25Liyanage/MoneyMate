@@ -3,6 +3,328 @@ const oracledb = require('oracledb');
 const Transaction = require('../models/transactionModel');
 const Goal = require('../models/goalModel');
 
+// Helper functions for executing procedures - FIXED
+const executeProcedure = async (procedureName, bindVars) => {
+  const connection = await getConnection();
+  try {
+    const result = await connection.execute(
+      `BEGIN ${procedureName}(:user_id, :param1, :param2, :result); END;`,
+      bindVars
+    );
+    
+    const resultSet = result.outBinds.result;
+    const rows = await resultSet.getRows();
+    await resultSet.close();
+    
+    return rows;
+  } catch (error) {
+    console.error(`Error executing procedure ${procedureName}:`, error);
+    throw error;
+  }
+};
+
+const executeProcedureTwoParams = async (procedureName, bindVars) => {
+  const connection = await getConnection();
+  try {
+    const result = await connection.execute(
+      `BEGIN ${procedureName}(:user_id, :param1, :result); END;`,
+      bindVars
+    );
+    
+    const resultSet = result.outBinds.result;
+    const rows = await resultSet.getRows();
+    await resultSet.close();
+    
+    return rows;
+  } catch (error) {
+    console.error(`Error executing procedure ${procedureName}:`, error);
+    throw error;
+  }
+};
+
+const executeProcedureSingleParam = async (procedureName, bindVars) => {
+  const connection = await getConnection();
+  try {
+    const result = await connection.execute(
+      `BEGIN ${procedureName}(:user_id, :result); END;`,
+      bindVars
+    );
+    
+    const resultSet = result.outBinds.result;
+    const rows = await resultSet.getRows();
+    await resultSet.close();
+    
+    return rows;
+  } catch (error) {
+    console.error(`Error executing procedure ${procedureName}:`, error);
+    throw error;
+  }
+};
+
+const reportController = {
+  
+  generateReport: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { month, year } = req.query;
+      
+      const targetMonth = parseInt(month) || new Date().getMonth() + 1;
+      const targetYear = parseInt(year) || new Date().getFullYear();
+
+      // Get transactions for the month
+      const transactions = await Transaction.getByMonth(userId, targetMonth, targetYear);
+      
+      // Get goal for the month
+      const goal = await Goal.getByUserAndMonth(userId, targetMonth, targetYear);
+
+      // Calculate analytics
+      const analytics = calculateTransactionAnalytics(transactions);
+      const monthlySummary = calculateMonthlySummary(transactions, goal);
+
+      // Generate chart data
+      const chartData = generateChartData(transactions, targetMonth, targetYear);
+
+      const report = {
+        success: true,
+        data: {
+          period: {
+            month: targetMonth,
+            year: targetYear,
+            monthName: getMonthName(targetMonth)
+          },
+          summary: monthlySummary,
+          analytics: analytics,
+          chartData: chartData,
+          transactions: transactions.slice(0, 50), // Limit to 50 transactions
+          generatedAt: new Date().toISOString()
+        }
+      };
+
+      res.json(report);
+    } catch (error) {
+      console.error('Generate report error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate report',
+        error: error.message
+      });
+    }
+  },
+
+  getYearlyReport: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { year } = req.query;
+      
+      const targetYear = parseInt(year) || new Date().getFullYear();
+
+      // Get all transactions for the year
+      const allTransactions = await Transaction.getAll(userId);
+      const yearTransactions = allTransactions.filter(t => {
+        const transDate = new Date(t.date);
+        return transDate.getFullYear() === targetYear;
+      });
+
+      // Get all goals for the year
+      const allGoals = await Goal.getUserGoals(userId);
+      const yearGoals = allGoals.filter(g => g.target_year === targetYear);
+
+      // Calculate yearly analytics
+      const yearlyAnalytics = calculateYearlyAnalytics(yearTransactions, yearGoals);
+      const monthlyBreakdown = calculateMonthlyBreakdown(yearTransactions, targetYear);
+
+      const report = {
+        success: true,
+        data: {
+          period: {
+            year: targetYear,
+            type: 'yearly'
+          },
+          summary: yearlyAnalytics,
+          monthlyBreakdown: monthlyBreakdown,
+          goalsProgress: yearGoals,
+          generatedAt: new Date().toISOString()
+        }
+      };
+
+      res.json(report);
+    } catch (error) {
+      console.error('Generate yearly report error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate yearly report',
+        error: error.message
+      });
+    }
+  },
+
+  // New report functions - FIXED
+  monthlyExpenditureAnalysis: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { year } = req.query;
+      const targetYear = parseInt(year) || new Date().getFullYear();
+
+      const rows = await executeProcedureTwoParams('get_monthly_expenditure_analysis', {
+        user_id: userId,
+        param1: targetYear,
+        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          reportType: 'Monthly Expenditure Analysis',
+          period: { year: targetYear },
+          analysis: rows || [],
+          generatedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Monthly expenditure analysis error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate monthly expenditure analysis',
+        error: error.message
+      });
+    }
+  },
+
+  goalAdherenceTracking: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { start_date, end_date } = req.query;
+      
+      const startDate = start_date || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+      const endDate = end_date || new Date().toISOString().split('T')[0];
+
+      const rows = await executeProcedure('get_goal_adherence_tracking', {
+        user_id: userId,
+        param1: startDate,
+        param2: endDate,
+        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          reportType: 'Goal Adherence Tracking',
+          period: { startDate, endDate },
+          tracking: rows || [],
+          generatedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Goal adherence tracking error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate goal adherence tracking',
+        error: error.message
+      });
+    }
+  },
+
+  savingsGoalProgress: async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      const rows = await executeProcedureSingleParam('get_savings_goal_progress', {
+        user_id: userId,
+        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          reportType: 'Savings Goal Progress',
+          progress: rows || [],
+          generatedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Savings goal progress error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate savings goal progress',
+        error: error.message
+      });
+    }
+  },
+
+  categoryExpenseDistribution: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { start_date, end_date } = req.query;
+      
+      const startDate = start_date || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+      const endDate = end_date || new Date().toISOString().split('T')[0];
+
+      const rows = await executeProcedure('get_category_expense_distribution', {
+        user_id: userId,
+        param1: startDate,
+        param2: endDate,
+        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          reportType: 'Category Expense Distribution',
+          period: { startDate, endDate },
+          distribution: rows || [],
+          generatedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Category expense distribution error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate category expense distribution',
+        error: error.message
+      });
+    }
+  },
+
+  financialHealthStatus: async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      const rows = await executeProcedureSingleParam('get_financial_health_status', {
+        user_id: userId,
+        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+      });
+
+      // Ensure we have at least one row
+      const healthData = rows && rows.length > 0 ? rows[0] : {
+        total_income: 0,
+        total_expenses: 0,
+        net_income: 0,
+        savings_rate: 0,
+        financial_health: 'No Data',
+        total_transactions: 0,
+        total_goals: 0,
+        achieved_goals: 0
+      };
+
+      res.json({
+        success: true,
+        data: {
+          reportType: 'Financial Health Status',
+          health: healthData,
+          generatedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Financial health status error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate financial health status',
+        error: error.message
+      });
+    }
+  }
+};
+
 // Helper functions
 function calculateTransactionAnalytics(transactions) {
   const incomeTransactions = transactions.filter(t => t.type === 'income');
@@ -194,295 +516,5 @@ function getMonthName(month) {
   ];
   return months[month - 1] || '';
 }
-
-// Helper functions for executing procedures
-const executeProcedure = async (procedureName, bindVars) => {
-  const connection = await getConnection();
-  try {
-    const result = await connection.execute(
-      `BEGIN ${procedureName}(:user_id, :param1, :param2, :result); END;`,
-      bindVars
-    );
-    
-    const resultSet = result.outBinds.result;
-    const rows = await resultSet.getRows();
-    await resultSet.close();
-    
-    return rows;
-  } catch (error) {
-    console.error(`Error executing procedure ${procedureName}:`, error);
-    throw error;
-  }
-};
-
-const executeProcedureSingleParam = async (procedureName, bindVars) => {
-  const connection = await getConnection();
-  try {
-    const result = await connection.execute(
-      `BEGIN ${procedureName}(:user_id, :result); END;`,
-      bindVars
-    );
-    
-    const resultSet = result.outBinds.result;
-    const rows = await resultSet.getRows();
-    await resultSet.close();
-    
-    return rows;
-  } catch (error) {
-    console.error(`Error executing procedure ${procedureName}:`, error);
-    throw error;
-  }
-};
-
-const reportController = {
-  
-  generateReport: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { month, year } = req.query;
-      
-      const targetMonth = parseInt(month) || new Date().getMonth() + 1;
-      const targetYear = parseInt(year) || new Date().getFullYear();
-
-      // Get transactions for the month
-      const transactions = await Transaction.getByMonth(userId, targetMonth, targetYear);
-      
-      // Get goal for the month
-      const goal = await Goal.getByUserAndMonth(userId, targetMonth, targetYear);
-
-      // Calculate analytics
-      const analytics = calculateTransactionAnalytics(transactions);
-      const monthlySummary = calculateMonthlySummary(transactions, goal);
-
-      // Generate chart data
-      const chartData = generateChartData(transactions, targetMonth, targetYear);
-
-      const report = {
-        success: true,
-        data: {
-          period: {
-            month: targetMonth,
-            year: targetYear,
-            monthName: getMonthName(targetMonth)
-          },
-          summary: monthlySummary,
-          analytics: analytics,
-          chartData: chartData,
-          transactions: transactions.slice(0, 50), // Limit to 50 transactions
-          generatedAt: new Date().toISOString()
-        }
-      };
-
-      res.json(report);
-    } catch (error) {
-      console.error('Generate report error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate report',
-        error: error.message
-      });
-    }
-  },
-
-  getYearlyReport: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { year } = req.query;
-      
-      const targetYear = parseInt(year) || new Date().getFullYear();
-
-      // Get all transactions for the year
-      const allTransactions = await Transaction.getAll(userId);
-      const yearTransactions = allTransactions.filter(t => {
-        const transDate = new Date(t.date);
-        return transDate.getFullYear() === targetYear;
-      });
-
-      // Get all goals for the year
-      const allGoals = await Goal.getUserGoals(userId);
-      const yearGoals = allGoals.filter(g => g.target_year === targetYear);
-
-      // Calculate yearly analytics
-      const yearlyAnalytics = calculateYearlyAnalytics(yearTransactions, yearGoals);
-      const monthlyBreakdown = calculateMonthlyBreakdown(yearTransactions, targetYear);
-
-      const report = {
-        success: true,
-        data: {
-          period: {
-            year: targetYear,
-            type: 'yearly'
-          },
-          summary: yearlyAnalytics,
-          monthlyBreakdown: monthlyBreakdown,
-          goalsProgress: yearGoals,
-          generatedAt: new Date().toISOString()
-        }
-      };
-
-      res.json(report);
-    } catch (error) {
-      console.error('Generate yearly report error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate yearly report',
-        error: error.message
-      });
-    }
-  },
-
-  // New report functions
-  monthlyExpenditureAnalysis: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { year } = req.query;
-      const targetYear = parseInt(year) || new Date().getFullYear();
-
-      const rows = await executeProcedureSingleParam('get_monthly_expenditure_analysis', {
-        user_id: userId,
-        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
-      });
-
-      res.json({
-        success: true,
-        data: {
-          reportType: 'Monthly Expenditure Analysis',
-          period: { year: targetYear },
-          analysis: rows,
-          generatedAt: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Monthly expenditure analysis error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate monthly expenditure analysis',
-        error: error.message
-      });
-    }
-  },
-
-  goalAdherenceTracking: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { start_date, end_date } = req.query;
-      
-      const startDate = start_date || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-      const endDate = end_date || new Date().toISOString().split('T')[0];
-
-      const rows = await executeProcedure('get_goal_adherence_tracking', {
-        user_id: userId,
-        param1: startDate,
-        param2: endDate,
-        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
-      });
-
-      res.json({
-        success: true,
-        data: {
-          reportType: 'Goal Adherence Tracking',
-          period: { startDate, endDate },
-          tracking: rows,
-          generatedAt: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Goal adherence tracking error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate goal adherence tracking',
-        error: error.message
-      });
-    }
-  },
-
-  savingsGoalProgress: async (req, res) => {
-    try {
-      const userId = req.user.id;
-
-      const rows = await executeProcedureSingleParam('get_savings_goal_progress', {
-        user_id: userId,
-        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
-      });
-
-      res.json({
-        success: true,
-        data: {
-          reportType: 'Savings Goal Progress',
-          progress: rows,
-          generatedAt: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Savings goal progress error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate savings goal progress',
-        error: error.message
-      });
-    }
-  },
-
-  categoryExpenseDistribution: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { start_date, end_date } = req.query;
-      
-      const startDate = start_date || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-      const endDate = end_date || new Date().toISOString().split('T')[0];
-
-      const rows = await executeProcedure('get_category_expense_distribution', {
-        user_id: userId,
-        param1: startDate,
-        param2: endDate,
-        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
-      });
-
-      res.json({
-        success: true,
-        data: {
-          reportType: 'Category Expense Distribution',
-          period: { startDate, endDate },
-          distribution: rows,
-          generatedAt: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Category expense distribution error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate category expense distribution',
-        error: error.message
-      });
-    }
-  },
-
-  financialHealthStatus: async (req, res) => {
-    try {
-      const userId = req.user.id;
-
-      const rows = await executeProcedureSingleParam('get_financial_health_status', {
-        user_id: userId,
-        result: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
-      });
-
-      res.json({
-        success: true,
-        data: {
-          reportType: 'Financial Health Status',
-          health: rows[0],
-          generatedAt: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Financial health status error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to generate financial health status',
-        error: error.message
-      });
-    }
-  }
-};
 
 module.exports = reportController;
