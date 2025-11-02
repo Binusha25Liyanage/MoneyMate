@@ -7,7 +7,7 @@ import '../models/goal_model.dart';
 import '../models/api_response.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.10:3000/api';
+  static const String baseUrl = 'http://192.168.8.101:3000/api';
 
   Future<http.Response> _request(
     String method,
@@ -462,6 +462,163 @@ class ApiService {
       return ApiResponse(
         success: false,
         message: 'Failed to fetch yearly report: $e',
+      );
+    }
+  }
+
+  // New Advanced Report Methods
+  Future<ApiResponse<dynamic>> getMonthlyExpenditureAnalysis(int year) async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        return ApiResponse(success: false, message: 'Not authenticated');
+      }
+
+      final response = await _request(
+        'GET',
+        '/report/monthly-expenditure?year=$year',
+        token: token,
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+      } else {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch monthly expenditure analysis: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch monthly expenditure analysis: $e',
+      );
+    }
+  }
+
+  Future<ApiResponse<dynamic>> getGoalAdherenceTracking(DateTime startDate, DateTime endDate) async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        return ApiResponse(success: false, message: 'Not authenticated');
+      }
+
+      final start = startDate.toIso8601String().split('T')[0];
+      final end = endDate.toIso8601String().split('T')[0];
+      
+      final response = await _request(
+        'GET',
+        '/report/goal-adherence?start_date=$start&end_date=$end',
+        token: token,
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+      } else {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch goal adherence tracking: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch goal adherence tracking: $e',
+      );
+    }
+  }
+
+  Future<ApiResponse<dynamic>> getSavingsGoalProgress() async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        return ApiResponse(success: false, message: 'Not authenticated');
+      }
+
+      final response = await _request(
+        'GET',
+        '/report/savings-progress',
+        token: token,
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+      } else {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch savings goal progress: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch savings goal progress: $e',
+      );
+    }
+  }
+
+  Future<ApiResponse<dynamic>> getCategoryExpenseDistribution(DateTime startDate, DateTime endDate) async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        return ApiResponse(success: false, message: 'Not authenticated');
+      }
+
+      final start = startDate.toIso8601String().split('T')[0];
+      final end = endDate.toIso8601String().split('T')[0];
+      
+      final response = await _request(
+        'GET',
+        '/report/category-distribution?start_date=$start&end_date=$end',
+        token: token,
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+      } else {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch category expense distribution: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch category expense distribution: $e',
+      );
+    }
+  }
+
+  Future<ApiResponse<dynamic>> getFinancialHealthStatus() async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        return ApiResponse(success: false, message: 'Not authenticated');
+      }
+
+      final response = await _request(
+        'GET',
+        '/report/financial-health',
+        token: token,
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        return ApiResponse<dynamic>.fromJson(jsonResponse, (data) => data);
+      } else {
+        return ApiResponse(
+          success: false,
+          message: 'Failed to fetch financial health status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Failed to fetch financial health status: $e',
       );
     }
   }

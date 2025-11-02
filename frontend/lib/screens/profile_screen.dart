@@ -253,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: AppColors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                  ),
+                ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -377,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 20),
          
-          // Monthly Report
+          // Basic Reports
           _buildReportItem(
             'Monthly Report',
             'Generate PDF report for current month',
@@ -386,12 +386,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 12),
          
-          // Yearly Report
           _buildReportItem(
             'Yearly Report',
             'Generate PDF report for current year',
             Icons.assessment_outlined,
             _generateYearlyReport,
+          ),
+          const SizedBox(height: 16),
+          
+          Divider(color: AppColors.textSecondary.withOpacity(0.3)),
+          const SizedBox(height: 16),
+          
+          Text(
+            'Advanced Analytics',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Advanced Reports
+          _buildReportItem(
+            'Monthly Expenditure Analysis',
+            'Detailed monthly expense analysis with trends',
+            Icons.analytics_outlined,
+            () => _generateAdvancedReport('monthly-expenditure'),
+          ),
+          const SizedBox(height: 12),
+          
+          _buildReportItem(
+            'Goal Adherence Tracking',
+            'Track your progress against financial goals',
+            Icons.flag_outlined,
+            () => _generateAdvancedReport('goal-adherence'),
+          ),
+          const SizedBox(height: 12),
+          
+          _buildReportItem(
+            'Savings Goal Progress',
+            'Monitor your savings goal achievements',
+            Icons.savings_outlined,
+            () => _generateAdvancedReport('savings-progress'),
+          ),
+          const SizedBox(height: 12),
+          
+          _buildReportItem(
+            'Category Expense Distribution',
+            'Breakdown of expenses by category',
+            Icons.pie_chart_outline,
+            () => _generateAdvancedReport('category-distribution'),
+          ),
+          const SizedBox(height: 12),
+          
+          _buildReportItem(
+            'Financial Health Status',
+            'Overall assessment of your financial health',
+            Icons.health_and_safety_outlined,
+            () => _generateAdvancedReport('financial-health'),
           ),
         ],
       ),
@@ -543,6 +596,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _showSuccessSnackBar('Monthly report generated successfully!');
       } else {
         _showErrorSnackBar('Failed to generate report: ${response.message}');
+        print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
       _showErrorSnackBar('Error generating report: $e');
@@ -566,6 +620,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _showSuccessSnackBar('Yearly report generated successfully!');
       } else {
         _showErrorSnackBar('Failed to generate report: ${response.message}');
+        print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
       _showErrorSnackBar('Error generating report: $e');
@@ -574,6 +629,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _generatingReport = false;
       });
     }
+  }
+
+  // New method for advanced reports
+  Future<void> _generateAdvancedReport(String reportType) async {
+    setState(() {
+      _generatingReport = true;
+    });
+    
+    try {
+      final now = DateTime.now();
+      dynamic response;
+      String fileName = '';
+
+      switch (reportType) {
+        case 'monthly-expenditure':
+          response = await _apiService.getMonthlyExpenditureAnalysis(now.year);
+          fileName = 'Monthly_Expenditure_Analysis_${now.year}';
+          break;
+        case 'goal-adherence':
+          final startDate = DateTime(now.year, now.month - 3, 1);
+          response = await _apiService.getGoalAdherenceTracking(startDate, now);
+          fileName = 'Goal_Adherence_Tracking_${now.month}_${now.year}';
+          break;
+        case 'savings-progress':
+          response = await _apiService.getSavingsGoalProgress();
+          fileName = 'Savings_Goal_Progress_${now.month}_${now.year}';
+          break;
+        case 'category-distribution':
+          final startDate = DateTime(now.year, 1, 1);
+          response = await _apiService.getCategoryExpenseDistribution(startDate, now);
+          fileName = 'Category_Expense_Distribution_${now.year}';
+          break;
+        case 'financial-health':
+          response = await _apiService.getFinancialHealthStatus();
+          fileName = 'Financial_Health_Status_${now.month}_${now.year}';
+          break;
+        default:
+          throw Exception('Unknown report type');
+      }
+
+      if (response.success) {
+        await _generateAdvancedPdfReport(response.data, fileName, reportType);
+        _showSuccessSnackBar('${_toTitleCase(reportType.replaceAll('-', ' '))} report generated successfully!');
+      } else {
+        _showErrorSnackBar('Failed to generate report: ${response.message}');
+        print('Failed to generate report: ${response.message}');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error generating report: $e');
+    } finally {
+      setState(() {
+        _generatingReport = false;
+      });
+    }
+  }
+
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 
   void _showSuccessSnackBar(String message) {
@@ -665,5 +782,281 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       _showErrorSnackBar('Error creating PDF: $e');
     }
+  }
+
+  // Update PDF generation to handle advanced reports
+  Future<void> _generateAdvancedPdfReport(Map<String, dynamic> reportData, String fileName, String reportType) async {
+    try {
+      final PdfDocument document = PdfDocument();
+      final PdfPage page = document.pages.add();
+      final Size pageSize = page.getClientSize();
+      final PdfFont titleFont = PdfStandardFont(PdfFontFamily.helvetica, 24);
+      final PdfFont headingFont = PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
+      final PdfFont contentFont = PdfStandardFont(PdfFontFamily.helvetica, 12);
+      
+      double yPosition = 0;
+
+      // Draw title
+      page.graphics.drawString(
+        reportData['reportType'] ?? 'Financial Report',
+        titleFont,
+        bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 30),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
+      );
+      yPosition += 40;
+
+      // Draw report period if available
+      if (reportData['period'] != null) {
+        final period = reportData['period'];
+        String periodText = '';
+        if (period['startDate'] != null && period['endDate'] != null) {
+          periodText = '${period['startDate']} to ${period['endDate']}';
+        } else if (period['year'] != null) {
+          periodText = 'Year: ${period['year']}';
+        }
+        page.graphics.drawString(
+          'Period: $periodText',
+          contentFont,
+          bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+          format: PdfStringFormat(alignment: PdfTextAlignment.center),
+        );
+        yPosition += 25;
+      }
+
+      // Draw generated date
+      page.graphics.drawString(
+        'Generated: ${DateTime.now().toLocal()}',
+        contentFont,
+        bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
+      );
+      yPosition += 30;
+
+      // Generate report content based on type
+      switch (reportType) {
+        case 'monthly-expenditure':
+          yPosition = _drawMonthlyExpenditureAnalysis(page, reportData, yPosition, headingFont, contentFont);
+          break;
+        case 'goal-adherence':
+          yPosition = _drawGoalAdherenceTracking(page, reportData, yPosition, headingFont, contentFont);
+          break;
+        case 'savings-progress':
+          yPosition = _drawSavingsGoalProgress(page, reportData, yPosition, headingFont, contentFont);
+          break;
+        case 'category-distribution':
+          yPosition = _drawCategoryExpenseDistribution(page, reportData, yPosition, headingFont, contentFont);
+          break;
+        case 'financial-health':
+          yPosition = _drawFinancialHealthStatus(page, reportData, yPosition, headingFont, contentFont);
+          break;
+      }
+
+      // Save the document
+      final List<int> bytes = await document.save();
+      document.dispose();
+
+      // Save to file
+      final status = await Permission.storage.request();
+      if (status.isGranted) {
+        final directory = await getExternalStorageDirectory();
+        final file = File('${directory?.path}/$fileName.pdf');
+        await file.writeAsBytes(bytes);
+        _showSuccessSnackBar('Report saved to: ${file.path}');
+      } else {
+        _showErrorSnackBar('Storage permission denied');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error creating PDF: $e');
+    }
+  }
+
+  // Helper methods for drawing different report types
+  double _drawMonthlyExpenditureAnalysis(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+    final pageSize = page.getClientSize();
+    
+    page.graphics.drawString(
+      'Monthly Expenditure Analysis',
+      headingFont,
+      bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+    );
+    yPosition += 25;
+
+    final analysis = data['analysis'] as List<dynamic>? ?? [];
+    
+    if (analysis.isEmpty) {
+      page.graphics.drawString(
+        'No data available for this period',
+        contentFont,
+        bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+      );
+      yPosition += 18;
+    } else {
+      for (var item in analysis) {
+        final month = item['MONTH_NAME']?.toString().trim() ?? 'Unknown';
+        final total = (item['TOTAL_AMOUNT'] ?? 0).toString();
+        final trend = item['TREND']?.toString() ?? 'No trend';
+        
+        page.graphics.drawString(
+          '$month: \$${double.parse(total).toStringAsFixed(2)} ($trend)',
+          contentFont,
+          bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+        );
+        yPosition += 18;
+      }
+    }
+
+    return yPosition;
+  }
+
+  double _drawGoalAdherenceTracking(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+    final pageSize = page.getClientSize();
+    
+    page.graphics.drawString(
+      'Goal Adherence Tracking',
+      headingFont,
+      bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+    );
+    yPosition += 25;
+
+    final tracking = data['tracking'] as List<dynamic>? ?? [];
+    
+    if (tracking.isEmpty) {
+      page.graphics.drawString(
+        'No goal tracking data available',
+        contentFont,
+        bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+      );
+      yPosition += 18;
+    } else {
+      for (var item in tracking) {
+        final month = item['TARGET_MONTH']?.toString() ?? 'Unknown';
+        final year = item['TARGET_YEAR']?.toString() ?? 'Unknown';
+        final target = (item['TARGET_AMOUNT'] ?? 0).toString();
+        final actual = (item['ACTUAL_AMOUNT'] ?? 0).toString();
+        final status = item['STATUS']?.toString() ?? 'Unknown';
+        
+        page.graphics.drawString(
+          '$month/$year: Target \$${double.parse(target).toStringAsFixed(2)} | Actual \$${double.parse(actual).toStringAsFixed(2)} | $status',
+          contentFont,
+          bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+        );
+        yPosition += 18;
+      }
+    }
+
+    return yPosition;
+  }
+
+  double _drawSavingsGoalProgress(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+    final pageSize = page.getClientSize();
+    
+    page.graphics.drawString(
+      'Savings Goal Progress',
+      headingFont,
+      bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+    );
+    yPosition += 25;
+
+    final progress = data['progress'] as List<dynamic>? ?? [];
+    
+    if (progress.isEmpty) {
+      page.graphics.drawString(
+        'No savings goal data available',
+        contentFont,
+        bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+      );
+      yPosition += 18;
+    } else {
+      for (var item in progress) {
+        final month = item['TARGET_MONTH']?.toString() ?? 'Unknown';
+        final year = item['TARGET_YEAR']?.toString() ?? 'Unknown';
+        final progressPercent = (item['PROGRESS_PERCENTAGE'] ?? 0).toString();
+        final status = item['STATUS']?.toString() ?? 'Unknown';
+        
+        page.graphics.drawString(
+          '$month/$year: ${double.parse(progressPercent).toStringAsFixed(1)}% - $status',
+          contentFont,
+          bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+        );
+        yPosition += 18;
+      }
+    }
+
+    return yPosition;
+  }
+
+  double _drawCategoryExpenseDistribution(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+    final pageSize = page.getClientSize();
+    
+    page.graphics.drawString(
+      'Category Expense Distribution',
+      headingFont,
+      bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+    );
+    yPosition += 25;
+
+    final distribution = data['distribution'] as List<dynamic>? ?? [];
+    
+    if (distribution.isEmpty) {
+      page.graphics.drawString(
+        'No category expense data available',
+        contentFont,
+        bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+      );
+      yPosition += 18;
+    } else {
+      for (var item in distribution) {
+        final category = item['CATEGORY_NAME']?.toString() ?? 'Unknown';
+        final total = (item['TOTAL_AMOUNT'] ?? 0).toString();
+        final percentage = (item['PERCENTAGE_OF_TOTAL'] ?? 0).toString();
+        
+        page.graphics.drawString(
+          '$category: \$${double.parse(total).toStringAsFixed(2)} (${double.parse(percentage).toStringAsFixed(1)}%)',
+          contentFont,
+          bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+        );
+        yPosition += 18;
+      }
+    }
+
+    return yPosition;
+  }
+
+  double _drawFinancialHealthStatus(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+    final pageSize = page.getClientSize();
+    
+    page.graphics.drawString(
+      'Financial Health Status',
+      headingFont,
+      bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
+    );
+    yPosition += 25;
+
+    final health = data['health'] as Map<String, dynamic>? ?? {};
+    
+    final income = (health['TOTAL_INCOME'] ?? 0).toString();
+    final expenses = (health['TOTAL_EXPENSES'] ?? 0).toString();
+    final net = (health['NET_INCOME'] ?? 0).toString();
+    final savingsRate = (health['SAVINGS_RATE'] ?? 0).toString();
+    final healthStatus = health['FINANCIAL_HEALTH']?.toString() ?? 'Unknown';
+    
+    final healthItems = [
+      'Total Income: \$${double.parse(income).toStringAsFixed(2)}',
+      'Total Expenses: \$${double.parse(expenses).toStringAsFixed(2)}',
+      'Net Income: \$${double.parse(net).toStringAsFixed(2)}',
+      'Savings Rate: ${double.parse(savingsRate).toStringAsFixed(1)}%',
+      'Financial Health: $healthStatus',
+    ];
+
+    for (var item in healthItems) {
+      page.graphics.drawString(
+        item,
+        contentFont,
+        bounds: Rect.fromLTWH(20, yPosition, pageSize.width - 40, 15),
+      );
+      yPosition += 18;
+    }
+
+    return yPosition;
   }
 }
