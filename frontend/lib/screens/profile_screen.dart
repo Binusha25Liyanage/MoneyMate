@@ -4,6 +4,8 @@ import 'package:money_mate/services/database_service.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:open_file/open_file.dart';
 import 'dart:io';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/sync/sync_bloc.dart';
@@ -43,29 +45,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 8),
               Text(
                 'Manage your account and preferences',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 24),
-             
+
               // User Info Card
               _buildUserInfoCard(),
               const SizedBox(height: 20),
-             
+
               // Account Details Card
               _buildAccountDetailsCard(),
               const SizedBox(height: 20),
-             
+
               // Data Sync Card
               _buildSyncCard(),
               const SizedBox(height: 20),
-             
+
               // Report Generation Card
               _buildReportCard(),
               const SizedBox(height: 20),
-             
+
               // Logout Button
               _buildLogoutButton(),
             ],
@@ -88,16 +87,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Center(
               child: Text(
                 'User not found',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
               ),
             ),
           );
         }
         final user = state.user;
-       
+
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -114,14 +110,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   shape: BoxShape.circle,
                   gradient: AppColors.primaryGradient,
                 ),
-                child: const Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.person, size: 50, color: Colors.white),
               ),
               const SizedBox(height: 20),
-             
+
               // User Info
               Text(
                 user.name,
@@ -134,14 +126,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 8),
               Text(
                 user.email,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.accentGreen.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -169,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return const SizedBox.shrink();
         }
         final user = state.user;
-       
+
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -188,22 +180,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-             
-              _buildDetailItem('User ID', user.id.toString(), Icons.fingerprint),
+
+              _buildDetailItem(
+                'User ID',
+                user.id.toString(),
+                Icons.fingerprint,
+              ),
               const SizedBox(height: 16),
-             
+
               _buildDetailItem('Email Address', user.email, Icons.email),
               const SizedBox(height: 16),
-             
-              _buildDetailItem('Date of Birth', user.formattedDateOfBirth, Icons.cake),
+
+              _buildDetailItem(
+                'Date of Birth',
+                user.formattedDateOfBirth,
+                Icons.cake,
+              ),
               const SizedBox(height: 16),
-             
-              _buildDetailItem('Member Since', user.memberSince, Icons.calendar_today),
+
+              _buildDetailItem(
+                'Member Since',
+                user.memberSince,
+                Icons.calendar_today,
+              ),
               const SizedBox(height: 16),
-             
-              _buildDetailItem('Account Status', user.isActive ? 'Active' : 'Inactive',
-                  user.isActive ? Icons.check_circle : Icons.error,
-                  color: user.isActive ? AppColors.accentGreen : AppColors.accentRed),
+
+              _buildDetailItem(
+                'Account Status',
+                user.isActive ? 'Active' : 'Inactive',
+                user.isActive ? Icons.check_circle : Icons.error,
+                color: user.isActive
+                    ? AppColors.accentGreen
+                    : AppColors.accentRed,
+              ),
             ],
           ),
         );
@@ -253,7 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: AppColors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -264,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-               
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -304,7 +313,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary,
+                                ),
                               ),
                             )
                           : IconButton(
@@ -326,7 +337,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.check_circle, color: AppColors.accentGreen, size: 16),
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.accentGreen,
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -370,13 +385,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           Text(
             'Generate detailed reports of your financial activities',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 20),
-         
+
           // Basic Reports
           _buildReportItem(
             'Monthly Report',
@@ -385,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _generateMonthlyReport,
           ),
           const SizedBox(height: 12),
-         
+
           _buildReportItem(
             'Yearly Report',
             'Generate PDF report for current year',
@@ -393,10 +405,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _generateYearlyReport,
           ),
           const SizedBox(height: 16),
-          
+
           Divider(color: AppColors.textSecondary.withOpacity(0.3)),
           const SizedBox(height: 16),
-          
+
           Text(
             'Advanced Analytics',
             style: TextStyle(
@@ -406,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Advanced Reports
           _buildReportItem(
             'Monthly Expenditure Analysis',
@@ -415,7 +427,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             () => _generateAdvancedReport('monthly-expenditure'),
           ),
           const SizedBox(height: 12),
-          
+
           _buildReportItem(
             'Goal Adherence Tracking',
             'Track your progress against financial goals',
@@ -423,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             () => _generateAdvancedReport('goal-adherence'),
           ),
           const SizedBox(height: 12),
-          
+
           _buildReportItem(
             'Savings Goal Progress',
             'Monitor your savings goal achievements',
@@ -431,7 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             () => _generateAdvancedReport('savings-progress'),
           ),
           const SizedBox(height: 12),
-          
+
           _buildReportItem(
             'Category Expense Distribution',
             'Breakdown of expenses by category',
@@ -439,7 +451,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             () => _generateAdvancedReport('category-distribution'),
           ),
           const SizedBox(height: 12),
-          
+
           _buildReportItem(
             'Financial Health Status',
             'Overall assessment of your financial health',
@@ -451,7 +463,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildDetailItem(String title, String value, IconData icon, {Color? color}) {
+  Widget _buildDetailItem(
+    String title,
+    String value,
+    IconData icon, {
+    Color? color,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -460,11 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: color ?? AppColors.textSecondary,
-            size: 20,
-          ),
+          Icon(icon, color: color ?? AppColors.textSecondary, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -494,7 +507,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildReportItem(String title, String subtitle, IconData icon, VoidCallback onTap) {
+  Widget _buildReportItem(
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -534,7 +552,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
                   ),
                 )
               : IconButton(
@@ -590,12 +610,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final now = DateTime.now();
       final response = await _apiService.getMonthlyReport(now.month, now.year);
-     
+
       if (response.success) {
-        await _generatePdfReport(response.data, 'Monthly_Report_${now.month}_${now.year}');
+        await _generatePdfReport(
+          response.data,
+          'Monthly_Report_${now.month}_${now.year}',
+        );
         _showSuccessSnackBar('Monthly report generated successfully!');
       } else {
-        _showErrorSnackBar('Failed to generate report: ${response.messageWithFallback}');
+        _showErrorSnackBar(
+          'Failed to generate report: ${response.messageWithFallback}',
+        );
         print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
@@ -614,12 +639,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final now = DateTime.now();
       final response = await _apiService.getYearlyReport(now.year);
-     
+
       if (response.success) {
         await _generatePdfReport(response.data, 'Yearly_Report_${now.year}');
         _showSuccessSnackBar('Yearly report generated successfully!');
       } else {
-        _showErrorSnackBar('Failed to generate report: ${response.messageWithFallback}');
+        _showErrorSnackBar(
+          'Failed to generate report: ${response.messageWithFallback}',
+        );
         print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
@@ -636,7 +663,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _generatingReport = true;
     });
-    
+
     try {
       final now = DateTime.now();
       dynamic response;
@@ -658,7 +685,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           break;
         case 'category-distribution':
           final startDate = DateTime(now.year, 1, 1);
-          response = await _apiService.getCategoryExpenseDistribution(startDate, now);
+          response = await _apiService.getCategoryExpenseDistribution(
+            startDate,
+            now,
+          );
           fileName = 'Category_Expense_Distribution_${now.year}';
           break;
         case 'financial-health':
@@ -671,9 +701,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.success) {
         await _generateAdvancedPdfReport(response.data, fileName, reportType);
-        _showSuccessSnackBar('${_toTitleCase(reportType.replaceAll('-', ' '))} report generated successfully!');
+        _showSuccessSnackBar(
+          '${_toTitleCase(reportType.replaceAll('-', ' '))} report generated successfully!',
+        );
       } else {
-        _showErrorSnackBar('Failed to generate report: ${response.messageWithFallback}');
+        _showErrorSnackBar(
+          'Failed to generate report: ${response.messageWithFallback}',
+        );
         print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
@@ -687,31 +721,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
   }
 
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.accentGreen,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.accentGreen),
     );
   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.accentRed,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.accentRed),
     );
   }
 
-  Future<void> _generatePdfReport(Map<String, dynamic> reportData, String fileName) async {
+  Future<String> _getSaveDirectory() async {
+    try {
+      if (Platform.isAndroid) {
+        // Check Android version
+        final deviceInfo = DeviceInfoPlugin();
+        final androidInfo = await deviceInfo.androidInfo;
+        
+        // For Android 10 and above, use app-specific directory
+        final directory = await getExternalStorageDirectory();
+        
+        if (directory == null) {
+          throw Exception('Cannot access external storage');
+        }
+
+        // Create a MoneyMate folder in the app's directory
+        final moneyMateDir = Directory('${directory.path}/MoneyMate/Reports');
+        
+        if (!await moneyMateDir.exists()) {
+          await moneyMateDir.create(recursive: true);
+        }
+        
+        return moneyMateDir.path;
+      } else {
+        // For iOS
+        final directory = await getApplicationDocumentsDirectory();
+        final reportsDir = Directory('${directory.path}/Reports');
+        
+        if (!await reportsDir.exists()) {
+          await reportsDir.create(recursive: true);
+        }
+        
+        return reportsDir.path;
+      }
+    } catch (e) {
+      print('Error getting save directory: $e');
+      // Fallback to application documents directory
+      final directory = await getApplicationDocumentsDirectory();
+      return directory.path;
+    }
+  }
+
+  Future<void> _generatePdfReport(
+    Map<String, dynamic> reportData,
+    String fileName,
+  ) async {
     try {
       // Create a new PDF document
       final PdfDocument document = PdfDocument();
@@ -744,7 +819,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final summary = reportData['summary'];
         page.graphics.drawString(
           'Summary:',
-          PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold),
+          PdfStandardFont(
+            PdfFontFamily.helvetica,
+            14,
+            style: PdfFontStyle.bold,
+          ),
           bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
         );
         yPosition += 25;
@@ -767,33 +846,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final List<int> bytes = await document.save();
       // Dispose the document
       document.dispose();
-      // Get external storage directory
-      final status = await Permission.storage.request();
-      if (status.isGranted) {
-        final directory = await getExternalStorageDirectory();
-        final file = File('${directory?.path}/$fileName.pdf');
-        await file.writeAsBytes(bytes);
-       
-        // Show success message with file path
-        _showSuccessSnackBar('Report saved to: ${file.path}');
-      } else {
-        _showErrorSnackBar('Storage permission denied');
-      }
+
+      // Get save directory
+      final directoryPath = await _getSaveDirectory();
+      final file = File('$directoryPath/$fileName.pdf');
+      await file.writeAsBytes(bytes);
+
+      _showSuccessSnackBar('Report saved successfully!');
+      print('Report saved to: ${file.path}');
+
+      // Try to open the file
+      await _openFile(file);
     } catch (e) {
       _showErrorSnackBar('Error creating PDF: $e');
+      print('Error details: $e');
     }
   }
 
   // Update PDF generation to handle advanced reports
-  Future<void> _generateAdvancedPdfReport(Map<String, dynamic> reportData, String fileName, String reportType) async {
+  Future<void> _generateAdvancedPdfReport(
+    Map<String, dynamic> reportData,
+    String fileName,
+    String reportType,
+  ) async {
     try {
       final PdfDocument document = PdfDocument();
       final PdfPage page = document.pages.add();
       final Size pageSize = page.getClientSize();
       final PdfFont titleFont = PdfStandardFont(PdfFontFamily.helvetica, 24);
-      final PdfFont headingFont = PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
+      final PdfFont headingFont = PdfStandardFont(
+        PdfFontFamily.helvetica,
+        16,
+        style: PdfFontStyle.bold,
+      );
       final PdfFont contentFont = PdfStandardFont(PdfFontFamily.helvetica, 12);
-      
+
       double yPosition = 0;
 
       // Draw title
@@ -824,8 +911,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       // Draw generated date
+      final now = DateTime.now();
+      final formattedDate = '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
       page.graphics.drawString(
-        'Generated: ${DateTime.now().toLocal()}',
+        'Generated: $formattedDate',
         contentFont,
         bounds: Rect.fromLTWH(0, yPosition, pageSize.width, 20),
         format: PdfStringFormat(alignment: PdfTextAlignment.center),
@@ -835,19 +924,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Generate report content based on type
       switch (reportType) {
         case 'monthly-expenditure':
-          yPosition = _drawMonthlyExpenditureAnalysis(page, reportData, yPosition, headingFont, contentFont);
+          yPosition = _drawMonthlyExpenditureAnalysis(
+            page,
+            reportData,
+            yPosition,
+            headingFont,
+            contentFont,
+          );
           break;
         case 'goal-adherence':
-          yPosition = _drawGoalAdherenceTracking(page, reportData, yPosition, headingFont, contentFont);
+          yPosition = _drawGoalAdherenceTracking(
+            page,
+            reportData,
+            yPosition,
+            headingFont,
+            contentFont,
+          );
           break;
         case 'savings-progress':
-          yPosition = _drawSavingsGoalProgress(page, reportData, yPosition, headingFont, contentFont);
+          yPosition = _drawSavingsGoalProgress(
+            page,
+            reportData,
+            yPosition,
+            headingFont,
+            contentFont,
+          );
           break;
         case 'category-distribution':
-          yPosition = _drawCategoryExpenseDistribution(page, reportData, yPosition, headingFont, contentFont);
+          yPosition = _drawCategoryExpenseDistribution(
+            page,
+            reportData,
+            yPosition,
+            headingFont,
+            contentFont,
+          );
           break;
         case 'financial-health':
-          yPosition = _drawFinancialHealthStatus(page, reportData, yPosition, headingFont, contentFont);
+          yPosition = _drawFinancialHealthStatus(
+            page,
+            reportData,
+            yPosition,
+            headingFont,
+            contentFont,
+          );
           break;
       }
 
@@ -855,25 +974,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final List<int> bytes = await document.save();
       document.dispose();
 
-      // Save to file
-      final status = await Permission.storage.request();
-      if (status.isGranted) {
-        final directory = await getExternalStorageDirectory();
-        final file = File('${directory?.path}/$fileName.pdf');
-        await file.writeAsBytes(bytes);
-        _showSuccessSnackBar('Report saved to: ${file.path}');
-      } else {
-        _showErrorSnackBar('Storage permission denied');
-      }
+      // Get save directory
+      final directoryPath = await _getSaveDirectory();
+      final file = File('$directoryPath/$fileName.pdf');
+      await file.writeAsBytes(bytes);
+      
+      _showSuccessSnackBar('Report saved successfully!');
+      print('Report saved to: ${file.path}');
+
+      // Try to open the file
+      await _openFile(file);
     } catch (e) {
       _showErrorSnackBar('Error creating PDF: $e');
+      print('Error details: $e');
     }
   }
 
+  Future<void> _openFile(File file) async {
+    try {
+      final result = await OpenFile.open(file.path);
+      
+      if (result.type != ResultType.done) {
+        print('Could not open file: ${result.message}');
+        // Show dialog with file location
+        _showFileLocationDialog(file.path);
+      }
+    } catch (e) {
+      print('Error opening file: $e');
+      _showFileLocationDialog(file.path);
+    }
+  }
+
+  void _showFileLocationDialog(String filePath) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.card,
+          title: Text(
+            'Report Saved',
+            style: TextStyle(color: AppColors.textPrimary),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your report has been saved to:',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  filePath,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'You can access this file using your file manager app.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: TextStyle(color: AppColors.primary),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Helper methods for drawing different report types
-  double _drawMonthlyExpenditureAnalysis(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+  double _drawMonthlyExpenditureAnalysis(
+    PdfPage page,
+    Map<String, dynamic> data,
+    double yPosition,
+    PdfFont headingFont,
+    PdfFont contentFont,
+  ) {
     final pageSize = page.getClientSize();
-    
+
     page.graphics.drawString(
       'Monthly Expenditure Analysis',
       headingFont,
@@ -882,7 +1081,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     yPosition += 25;
 
     final analysis = data['analysis'] as List<dynamic>? ?? [];
-    
+
     if (analysis.isEmpty) {
       page.graphics.drawString(
         'No data available for this period',
@@ -895,7 +1094,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final month = item['MONTH_NAME']?.toString().trim() ?? 'Unknown';
         final total = (item['TOTAL_AMOUNT'] ?? 0).toString();
         final trend = item['TREND']?.toString() ?? 'No trend';
-        
+
         page.graphics.drawString(
           '$month: \$${double.parse(total).toStringAsFixed(2)} ($trend)',
           contentFont,
@@ -908,9 +1107,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return yPosition;
   }
 
-  double _drawGoalAdherenceTracking(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+  double _drawGoalAdherenceTracking(
+    PdfPage page,
+    Map<String, dynamic> data,
+    double yPosition,
+    PdfFont headingFont,
+    PdfFont contentFont,
+  ) {
     final pageSize = page.getClientSize();
-    
+
     page.graphics.drawString(
       'Goal Adherence Tracking',
       headingFont,
@@ -919,7 +1124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     yPosition += 25;
 
     final tracking = data['tracking'] as List<dynamic>? ?? [];
-    
+
     if (tracking.isEmpty) {
       page.graphics.drawString(
         'No goal tracking data available',
@@ -934,7 +1139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final target = (item['TARGET_AMOUNT'] ?? 0).toString();
         final actual = (item['ACTUAL_AMOUNT'] ?? 0).toString();
         final status = item['STATUS']?.toString() ?? 'Unknown';
-        
+
         page.graphics.drawString(
           '$month/$year: Target \$${double.parse(target).toStringAsFixed(2)} | Actual \$${double.parse(actual).toStringAsFixed(2)} | $status',
           contentFont,
@@ -947,9 +1152,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return yPosition;
   }
 
-  double _drawSavingsGoalProgress(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+  double _drawSavingsGoalProgress(
+    PdfPage page,
+    Map<String, dynamic> data,
+    double yPosition,
+    PdfFont headingFont,
+    PdfFont contentFont,
+  ) {
     final pageSize = page.getClientSize();
-    
+
     page.graphics.drawString(
       'Savings Goal Progress',
       headingFont,
@@ -958,7 +1169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     yPosition += 25;
 
     final progress = data['progress'] as List<dynamic>? ?? [];
-    
+
     if (progress.isEmpty) {
       page.graphics.drawString(
         'No savings goal data available',
@@ -972,7 +1183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final year = item['TARGET_YEAR']?.toString() ?? 'Unknown';
         final progressPercent = (item['PROGRESS_PERCENTAGE'] ?? 0).toString();
         final status = item['STATUS']?.toString() ?? 'Unknown';
-        
+
         page.graphics.drawString(
           '$month/$year: ${double.parse(progressPercent).toStringAsFixed(1)}% - $status',
           contentFont,
@@ -985,9 +1196,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return yPosition;
   }
 
-  double _drawCategoryExpenseDistribution(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+  double _drawCategoryExpenseDistribution(
+    PdfPage page,
+    Map<String, dynamic> data,
+    double yPosition,
+    PdfFont headingFont,
+    PdfFont contentFont,
+  ) {
     final pageSize = page.getClientSize();
-    
+
     page.graphics.drawString(
       'Category Expense Distribution',
       headingFont,
@@ -996,7 +1213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     yPosition += 25;
 
     final distribution = data['distribution'] as List<dynamic>? ?? [];
-    
+
     if (distribution.isEmpty) {
       page.graphics.drawString(
         'No category expense data available',
@@ -1009,7 +1226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final category = item['CATEGORY_NAME']?.toString() ?? 'Unknown';
         final total = (item['TOTAL_AMOUNT'] ?? 0).toString();
         final percentage = (item['PERCENTAGE_OF_TOTAL'] ?? 0).toString();
-        
+
         page.graphics.drawString(
           '$category: \$${double.parse(total).toStringAsFixed(2)} (${double.parse(percentage).toStringAsFixed(1)}%)',
           contentFont,
@@ -1022,9 +1239,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return yPosition;
   }
 
-  double _drawFinancialHealthStatus(PdfPage page, Map<String, dynamic> data, double yPosition, PdfFont headingFont, PdfFont contentFont) {
+  double _drawFinancialHealthStatus(
+    PdfPage page,
+    Map<String, dynamic> data,
+    double yPosition,
+    PdfFont headingFont,
+    PdfFont contentFont,
+  ) {
     final pageSize = page.getClientSize();
-    
+
     page.graphics.drawString(
       'Financial Health Status',
       headingFont,
@@ -1033,13 +1256,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     yPosition += 25;
 
     final health = data['health'] as Map<String, dynamic>? ?? {};
-    
+
     final income = (health['TOTAL_INCOME'] ?? 0).toString();
     final expenses = (health['TOTAL_EXPENSES'] ?? 0).toString();
     final net = (health['NET_INCOME'] ?? 0).toString();
     final savingsRate = (health['SAVINGS_RATE'] ?? 0).toString();
     final healthStatus = health['FINANCIAL_HEALTH']?.toString() ?? 'Unknown';
-    
+
     final healthItems = [
       'Total Income: \$${double.parse(income).toStringAsFixed(2)}',
       'Total Expenses: \$${double.parse(expenses).toStringAsFixed(2)}',
