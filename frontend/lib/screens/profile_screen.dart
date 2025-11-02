@@ -595,7 +595,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await _generatePdfReport(response.data, 'Monthly_Report_${now.month}_${now.year}');
         _showSuccessSnackBar('Monthly report generated successfully!');
       } else {
-        _showErrorSnackBar('Failed to generate report: ${response.message}');
+        _showErrorSnackBar('Failed to generate report: ${response.messageWithFallback}');
         print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
@@ -619,7 +619,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await _generatePdfReport(response.data, 'Yearly_Report_${now.year}');
         _showSuccessSnackBar('Yearly report generated successfully!');
       } else {
-        _showErrorSnackBar('Failed to generate report: ${response.message}');
+        _showErrorSnackBar('Failed to generate report: ${response.messageWithFallback}');
         print('Failed to generate report: ${response.message}');
       }
     } catch (e) {
@@ -673,7 +673,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await _generateAdvancedPdfReport(response.data, fileName, reportType);
         _showSuccessSnackBar('${_toTitleCase(reportType.replaceAll('-', ' '))} report generated successfully!');
       } else {
-        _showErrorSnackBar('Failed to generate report: ${response.message}');
+        _showErrorSnackBar('Failed to generate report: ${response.messageWithFallback}');
         print('Failed to generate report: ${response.message}');
       }
     } catch (e) {

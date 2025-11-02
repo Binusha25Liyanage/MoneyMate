@@ -57,7 +57,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         
         emit(AuthAuthenticated(user: user));
       } else {
-        emit(AuthError(message: response.message));
+        emit(AuthError(message: response.messageWithFallback));
       }
     } catch (e) {
       emit(AuthError(message: 'Login failed: $e'));
@@ -77,7 +77,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (response.success) {
         emit(AuthRegistered());
       } else {
-        emit(AuthError(message: response.message));
+        emit(AuthError(message: response.messageWithFallback));
       }
     } catch (e) {
       emit(AuthError(message: 'Registration failed: $e'));
